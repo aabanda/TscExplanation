@@ -15,7 +15,6 @@ test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CB
 
 
 
-bla bla bla bla
 
 
 tsf = TimeSeriesForest(n_trees=10)
