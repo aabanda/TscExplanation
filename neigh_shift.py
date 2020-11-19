@@ -17,7 +17,9 @@ train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
 
-ind =2
+ind =2 #class 1
+ind = 0 #Class 2
+ind = 5 #Class 2
 ref = test_x.values[ind,:][0].values
 plt.plot(ref)
 test_y[ind]
@@ -54,7 +56,9 @@ distance_matrix = np.zeros((test_x.shape[0],train_x.shape[0]))
 
 for i in range(0,test_x.shape[0]):
     for j in range(0, train_x.shape[0]):
-        distance_matrix[i,j] = dtw_distance(test_x.values[i,:][0], train_x.values[j,:][0])
+        #distance_matrix[i,j] = dtw_distance(test_x.values[i,:][0], train_x.values[j,:][0])
+        distance_matrix[i,j] = np.linalg.norm(test_x.values[i,:][0]-train_x.values[j,:][0])
+
 
 
 
