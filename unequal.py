@@ -3,28 +3,20 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from sktime.distances.elastic import dtw_distance
+from sktime.classifiers.dictionary_based import BOSSEnsemble, BOSSIndividual
+from sklearn.metrics import f1_score
+import pandas as pd
 
-
-
-
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
-
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
 
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
 
-# ind =2 #class 1
-# ind = 0 #Class 2
-# ind = 5 #Class 3
 
-ind=0
+clf = BOSSIndividual(window_size=50, word_length=8, alphabet_size=4,norm=False)
+clf.fit(train_x,train_y)
+y_pred = clf.predict(test_x)
+f1_score(test_y.astype(int),y_pred,average='weighted')
 
-ref = test_x.values[ind,:][0].values
-#plt.plot(ref)
-print(test_y[ind])
 
 
 def warp(ts,start,end,scale):
@@ -82,58 +74,41 @@ def warp(ts,start,end,scale):
 
     return  t_trasnformed
 
-l = len(ref)
-
-start = 20
-end = 100
-k = 0.8
-
-start = 20
-end = 60
-k = 1.2
-
 start = 50
 end = 0
 k = 1.4
 
+ref = test_x.values[0,:][0]
 
+warped = warp(ref, start, end, k)
+len(warped)
 
-plt.plot(warp(ref, start, end, k))
-
-
-neig = []
-for i in range(0,200):
-     start = random.randint(1,l-10)
-     end = random.randint(start, start+int(0.2*l))
-     if end >= l:
-         end = 0
-     k = np.round(random.uniform(0.7,1.3), decimals=1)
-     while k == 1:
-         k = np.round(random.uniform(0.7, 1.3), decimals=1)
-     neig.append(warp(ref, start, end, k))
+neig = np.vstack((warped,warped))
+neig = pd.DataFrame(neig)
 
 
 
-
-distance_matrix = np.zeros((len(neig),train_x.shape[0]))
-
-for i in range(0, len(neig)):
-    for j in range(0, train_x.shape[0]):
-        distance_matrix[i,j] = dtw_distance(neig[i], np.asarray(train_x.values[j,:][0]))
+y_pred = clf.predict(test_x)
+test_x.shape
 
 
 
-neig_y = train_y[np.argmin(distance_matrix,axis=1)]
-
-# len(neig[0])
-# len(np.asarray(train_x.values[0,:][0]))
-# plt.plot(ref)
-# plt.plot(warp(ref, start, end, k))
+for i in range(0,test_x.shape[0]):
+    test_x.iloc[i, :][0] = pd.Series(warped)
 
 
+plt.plot(test_x.values[0,:][0])
 
 
+train_x.values[0,:]
+test_x.iloc[1,:][0] = pd.Series(warped)
+
+test_x.shape[0]
+
+# from sktime.utils.load_data import from_long_to_nested
+# X_nested = from_long_to_nested(neig)
+
+y_pred = clf.predict(test_x)
 
 
-
-
+f1_score(test_y.astype(int),y_pred,average='weighted')
