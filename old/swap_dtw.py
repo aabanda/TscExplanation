@@ -16,8 +16,8 @@ from sktime.classifiers.shapelet_based import ShapeletTransformClassifier
 from sktime.classifiers.distance_based import KNeighborsTimeSeriesClassifier
 knn = KNeighborsTimeSeriesClassifier(n_neighbors=1, metric="dtw")
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
 knn.fit(train_x, train_y)
 
 indx_test = 1

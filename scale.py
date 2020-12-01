@@ -31,33 +31,15 @@ test_y[ind]
 
 
 
-def shift(ref, start, k):
-    l = len(ref)
-    shifted_t = np.zeros(l+k)
-    shifted_t[range(start)] = ref[range(start)]
-    shifted_t[range(start+k,len(shifted_t))]= ref[range(start,l)]
-
-
-    before = ref[start-1]
-    after = ref[start]
-
-    for t in range(start,start+k):
-        mean =(((start+k-t))* before + (k-(start+k-t)) * after)/k
-        std = np.abs(before - after)/5
-        shifted_t[t]= np.random.normal(mean,std,1)
-
+def scale(ref, k):
+    shifted_t = ref*k
     return shifted_t
 
 
-start = 15
-k = 20
-
-start = 60
-k = 30
 
 
 plt.plot(ref)
-plt.plot(shift(ref,start,k))
+plt.plot(scale(ref,1.3))
 
 
 
@@ -66,12 +48,13 @@ plt.plot(shift(ref,start,k))
 
 num_neig = 100
 neig = []
-inter = np.zeros((num_neig,2))
+inter = np.zeros((num_neig,1))
 for i in range(0,num_neig):
-     start = random.randint(1,len(ref)-10)
-     k = random.randint(1,int(len(ref)*0.3))
-     inter[i,:] = np.array([start,k])
-     neig.append(shift(ref, start, k))
+     k = np.round(random.uniform(0.7,1.3), decimals=1)
+     while k == 1:
+         k = np.round(random.uniform(0.7, 1.3), decimals=1)
+     inter[i,:] = k
+     neig.append(scale(ref, k))
 
 
 

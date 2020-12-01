@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 # test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ShapeletSim/ShapeletSim_TEST.ts")
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
 ind_test = 0
 test_y[ind_test]

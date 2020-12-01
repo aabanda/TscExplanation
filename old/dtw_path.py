@@ -30,8 +30,8 @@ dtwvis.plot_warpingpaths(s1, s2, paths, best_path)
 
 import matplotlib.pyplot as plt
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
 
 
 ind_test = 0
@@ -59,8 +59,8 @@ alignment.costMatrix
 
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
 ind_test = 0
 test_y[ind_test]

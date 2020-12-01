@@ -13,12 +13,12 @@ import itertools as it
 from sktime.classifiers.shapelet_based import ShapeletTransformClassifier
 
 
-# train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
-# test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/Coffee/Coffee_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/Coffee/Coffee_TEST.ts")
+# train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/Coffee/Coffee_TRAIN.ts")
+# test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/Coffee/Coffee_TEST.ts")
 
 
 # train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
@@ -72,7 +72,7 @@ per = np.array(list(range(0,len(ts.values[0][0]))))
 # plt.plot(ts)
 # plt.plot(ts[per])
 
-plt.plot(ts.values[0][0])
+# plt.plot(ts.values[0][0])
 
 
 # t = np.linspace(0, 2 * np.pi, 20)
@@ -180,20 +180,28 @@ class GeneticSelector():
             #print(chromosome)
             chromosome = list(map(int, chromosome))
             class_penalization = 0
+            dist_penalization = 0
 
             a = ts.values[0][0][chromosome]
             test_x.iloc[0, :][0] = pd.Series(a)
             #tsf.predict(pd.DataFrame(test_x.iloc[0, :]))
 
 
-            if np.asarray(tsf.predict(ts)).astype(int)[0] == np.asarray(tsf.predict(pd.DataFrame(test_x.iloc[0, :]))).astype(int)[0]:
-                class_penalization = 1
+            if np.asarray(tsf.predict(ts)).astype(int)[0] != np.asarray(tsf.predict(pd.DataFrame(test_x.iloc[0, :]))).astype(int)[0]:
+                class_penalization = 15
+
+            if kendallTau(list(range(0, len(ts.values[0][0]))), chromosome) / ((len(ts.values[0][0]) * (len(ts.values[0][0]) - 1)) / 2) > 0.2:
+                dist_penalization = 15
+
+            if kendallTau(list(range(0, len(ts.values[0][0]))), chromosome) / ((len(ts.values[0][0]) * (len(ts.values[0][0]) - 1)) / 2) ==0:
+                score = 15 + dist_penalization + class_penalization
+            else:
             #print("class pena")
             # print(class_penalization)
             # print(chromosome)
             # print(kendallTau(list(range(0, len(ts.values[0][0]))), chromosome))
             # print(((len(ts.values[0][0]) * (len(ts.values[0][0]) - 1)) / 2))
-            score = kendallTau(list(range(0, len(ts.values[0][0]))), chromosome) / ((len(ts.values[0][0]) * (len(ts.values[0][0]) - 1)) / 2)+ class_penalization
+                score = 1/(kendallTau(list(range(0, len(ts.values[0][0]))), chromosome) / ((len(ts.values[0][0]) * (len(ts.values[0][0]) - 1)) / 2)) + dist_penalization+ class_penalization
 
             # if kendallTau(list(range(0,len(ts))), chromosome) ==0:
             #     score = kendallTau(list(range(0, len(ts))), chromosome) / ((len(ts) * (len(ts) - 1)) / 2) - \
@@ -310,34 +318,29 @@ class GeneticSelector():
 sel = GeneticSelector(n_gen=100, size=200, n_best=20, n_rand=60,
                               n_children=5, mutation_rate=0.6)
 
+
+
+neig = []
+
+# for i in range(0,50):
+
+
 sel.fit()
+
 sel.scores_best[-1]
 sel.scores_avg[-1]
 sel.plot_scores()
 sel.support_
 winner = np.asarray(list(map(int, sel.support_)))
+kendallTau(range(0,len(ts.values[0][0])),winner)/((len(ts.values[0][0])*(len(ts.values[0][0])-1))/2)
+plt.plot(ts.values[0][0])
+plt.plot(np.asarray(ts.values[0][0][winner]))
+# type(ts)
+# type(winner)
+# list(range(0,len(ts.values[0][0])))-winner
+# plt.hist(list(range(0,len(ts)))-winner)
 
-
-neig = []
-
-for i in range(0,10):
-    sel.fit()
-
-
-    sel.scores_best[-1]
-    sel.scores_avg[-1]
-    sel.plot_scores()
-    sel.support_
-    winner = np.asarray(list(map(int, sel.support_)))
-    # kendallTau(range(0,len(ts.values[0][0])),winner)/((len(ts.values[0][0])*(len(ts.values[0][0])-1))/2)
-    # plt.plot(ts.values[0][0])
-    # plt.plot(np.asarray(ts.values[0][0][winner]))
-    # type(ts)
-    # type(winner)
-    # list(range(0,len(ts.values[0][0])))-winner
-    # plt.hist(list(range(0,len(ts)))-winner)
-
-    neig = [neig, winner]
+#neig = [neig, winner]
 
 
 
@@ -401,4 +404,3 @@ print(tsf.predict(ts.values[0][0][winner].reshape(1, -1)))
 # M1 = M.reshape(len(a),len(a))
 #
 # plt.plot(a.dot(M1))
-

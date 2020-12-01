@@ -16,8 +16,8 @@ import seaborn as sns
 from sktime.classifiers.shapelet_based import ShapeletTransformClassifier
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
 
 
 a = np.array(["1","2","3","4"])
@@ -99,15 +99,6 @@ len(pred)
 
 
 
-
-
-#
-#
-# np.savetxt("pred.txt", pred)
-#
-# ppp = np.loadtxt("pred.txt")
-# pred = np.loadtxt("pred.txt")
-#
 
 
 
