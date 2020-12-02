@@ -7,20 +7,20 @@ from sktime.distances.elastic import dtw_distance
 
 
 
-# train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
-# test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
+# train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
+# test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
 
 
 #CBF
 #ind =2 #class 1
 # ind = 0 #Class 2
-# ind = 5 #Class 3
+ind = 5 #Class 3
 # #
 # # Arrowhead
-ind=0
+# ind=0
 # ind=100
 # ind=160
 
@@ -135,6 +135,38 @@ print(np.unique(neig_y,return_counts=True))
 
 
 
+inter
+neig_y
+
+
+plt.scatter(inter[neig_y=='1',0],inter[neig_y=='1',1],color='r',label="Other class")
+plt.scatter(inter[neig_y=='3',0],inter[neig_y=='3',1],color='b',label="Same class")
+plt.xlabel("start")
+plt.ylabel("end")
+plt.legend()
+
+
+plt.scatter(inter[neig_y=='1',0],inter[neig_y=='1',2],color='r',label="Other class")
+plt.scatter(inter[neig_y=='3',0],inter[neig_y=='3',2],color='b',label="Same class")
+plt.xlabel("start")
+plt.ylabel("level")
+plt.legend()
+
+plt.scatter(inter[neig_y=='1',1],inter[neig_y=='1',2],color='r',label="Other class")
+plt.scatter(inter[neig_y=='3',1],inter[neig_y=='3',2],color='b',label="Same class")
+plt.xlabel("end")
+plt.ylabel("level")
+plt.legend()
+
+
+plt.scatter(inter[neig_y=='1',0],inter[neig_y=='1',1], marker="x", c=inter[neig_y=='1',2],label="Other class")
+plt.scatter(inter[neig_y=='3',0],inter[neig_y=='3',1], marker="o", c=inter[neig_y=='3',2],label="Same class")
+plt.xlabel("start")
+plt.ylabel("end")
+plt.legend()
+
+
+
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -164,6 +196,7 @@ y = neig_y
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score
 
 clf = LogisticRegression(random_state=0,max_iter=5000)
 
@@ -175,7 +208,7 @@ for train_index, test_index in kf.split(X,y):
 
     clf.fit(X_train, y_train)
     pred = clf.predict(X_test)
-    accu.append(np.sum(pred==y_test)/len(pred))
+    accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
     print(classification_report(y_test, pred))
 
 print(np.mean(accu))
@@ -189,10 +222,10 @@ clf.coef_
 
 
 from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier(max_depth=5, min_samples_leaf=1)
+clf = DecisionTreeClassifier()
 
 
-kf = StratifiedKFold(n_splits=2)
+kf = StratifiedKFold(n_splits=3)
 accu = []
 for train_index, test_index in kf.split(X,y):
     X_train, X_test = X[train_index,:], X[test_index,:]
@@ -200,7 +233,7 @@ for train_index, test_index in kf.split(X,y):
 
     clf.fit(X_train, y_train)
     pred = clf.predict(X_test)
-    accu.append(np.sum(pred==y_test)/len(pred))
+    accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
     print(classification_report(y_test, pred))
 
 
@@ -209,18 +242,19 @@ print(np.mean(accu))
 
 
 
+import pandas as pd
+X1 = pd.DataFrame(X)
 
-
-
-clf.fit(X, y)
+clf.fit(X1, y)
 
 
 
 from sklearn import tree
 
-#tree.plot_tree(clf)
+tree.plot_tree(clf,feature_names=np.array(['start','end','level']))
 fig, ax = plt.subplots(figsize=(12, 12))
-tree.plot_tree(clf, class_names=np.array(["C1","C2","C3"]),impurity=False, fontsize=10)
+tree.plot_tree(clf, class_names=np.array(["C1","C3"]),impurity=False, fontsize=10)
+#tree.plot_tree(clf, class_names=np.array(["C1","C2","C3"]),impurity=False, fontsize=10)
 plt.show()
 
 

@@ -3,14 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from sktime.distances.elastic import dtw_distance
-
+import numpy as np
+from sktime.classifiers.dictionary_based import BOSSEnsemble, BOSSIndividual
+from sklearn.metrics import f1_score
 
 
 
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
-
+#
 # train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
 # test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
 
@@ -21,7 +23,7 @@ ind = 5 #Class 3
 
 #ArrowHead
 # ind=0
-# ind=100
+# ind q=100
 # ind=160
 
 ref = test_x.values[ind,:][0].values
@@ -31,34 +33,17 @@ test_y[ind]
 
 
 
-def shift(ref, start, k):
-    l = len(ref)
-    shifted_t = np.zeros(l+k)
-    shifted_t[range(start)] = ref[range(start)]
-    shifted_t[range(start+k,len(shifted_t))]= ref[range(start,l)]
-
-
-    before = ref[start-1]
-    after = ref[start]
-
-    for t in range(start,start+k):
-        mean =(((start+k-t))* before + (k-(start+k-t)) * after)/k
-        std = np.abs(before - after)/5
-        shifted_t[t]= np.random.normal(mean,std,1)
-
+def outliers(ref, k, position):
+    add = np.zeros(len(ref))
+    add[position] = np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*k/10 , 1)
+    shifted_t = ref+add
     return shifted_t
 
 
-start = 15
-k = 20
-
-start = 60
-k = 30
 
 
 plt.plot(ref)
-plt.plot(shift(ref,start,k))
-
+plt.plot(outliers(ref,5,120))
 
 
 
@@ -68,10 +53,10 @@ num_neig = 100
 neig = []
 inter = np.zeros((num_neig,2))
 for i in range(0,num_neig):
-     start = random.randint(1,len(ref)-10)
-     k = random.randint(1,int(len(ref)*0.3))
-     inter[i,:] = np.array([start,k])
-     neig.append(shift(ref, start, k))
+     k = random.randrange(1,10)
+     position = random.randrange(1, len(ref))
+     inter[i,:] = np.array([position,k])
+     neig.append(outliers(ref, k,position))
 
 
 
@@ -87,11 +72,37 @@ neig_y = train_y[np.argmin(distance_matrix,axis=1)]
 print(np.unique(neig_y,return_counts=True))
 
 
+
 plt.scatter(inter[neig_y=='1',0],inter[neig_y=='1',1],color='r',label="Other class")
 plt.scatter(inter[neig_y=='3',0],inter[neig_y=='3',1],color='b',label="Same class")
 plt.xlabel("start")
 plt.ylabel("level")
 plt.legend()
+
+
+
+
+
+
+clf = BOSSEnsemble()
+clf.fit(train_x,train_y.astype(int))
+y_pred = clf.predict(test_x)
+f1_score(test_y.astype(int),np.asarray(y_pred).astype(int),average='weighted')
+
+
+
+
+
+
+pred_neig = []
+for i in range(0,len(neig)):
+    test_neig = np.transpose(np.column_stack((neig[i],neig[i])))
+    pred_neig.append(clf.predict(test_neig)[0])
+
+print(np.unique(pred_neig,return_counts=True))
+
+
+
 
 
 
@@ -116,7 +127,6 @@ for train_index, test_index in kf.split(X,y):
     clf.fit(X_train, y_train)
     pred = clf.predict(X_test)
     accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
-    print(classification_report(y_test, pred))
 
 print(np.mean(accu))
 
@@ -129,7 +139,7 @@ clf.coef_
 
 
 from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier()
+clf = DecisionTreeClassifier(max_depth=5, min_samples_leaf=1)
 
 
 kf = StratifiedKFold(n_splits=3)
@@ -140,26 +150,20 @@ for train_index, test_index in kf.split(X,y):
 
     clf.fit(X_train, y_train)
     pred = clf.predict(X_test)
-    accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
-    print(classification_report(y_test, pred))
+    accu.append(f1_score(y_test, pred,average="weighted"))
 
 
 print(np.mean(accu))
 
 
 
-
-import pandas as pd
-X1 = pd.DataFrame(X)
-
-clf.fit(X1, y)
+clf.fit(X, y)
 
 
 
 from sklearn import tree
 
-tree.plot_tree(clf,feature_names=np.array(['start','end','level']))
+#tree.plot_tree(clf)
 fig, ax = plt.subplots(figsize=(12, 12))
-tree.plot_tree(clf, class_names=np.array(["C1","C3"]),impurity=False, fontsize=10)
-#tree.plot_tree(clf, class_names=np.array(["C1","C2","C3"]),impurity=False, fontsize=10)
+tree.plot_tree(clf, class_names=np.array(["C1","C2","C3"]),impurity=False, fontsize=10)
 plt.show()
