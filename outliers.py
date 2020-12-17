@@ -12,7 +12,7 @@ from sklearn.metrics import f1_score
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
-#
+
 # train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
 # test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
 
@@ -33,30 +33,43 @@ test_y[ind]
 
 
 
-def outliers(ref, k, position):
-    add = np.zeros(len(ref))
-    add[position] = np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*k/10 , 1)
-    shifted_t = ref+add
+# def outliers(ref, num_outliers, k):
+#     add = np.zeros(len(ref))
+#     positions = []
+#     [positions.append(random.randint(0, len(ref)-1)) for l in range(0,num_outliers)]
+#     for j in positions:
+#         add[j] = np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*k/10 , 1)[0]
+#     shifted_t = ref+add
+#     return shifted_t
+
+def outliers(ref, positions, k):
+    pos_ind = np.where(positions)[0]
+    shifted_t = ref.copy()
+    for j in pos_ind:
+        shifted_t[j] = shifted_t[j]+ np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*k/10 , 1)[0]
     return shifted_t
 
 
 
+# plt.plot(ref)
+# plt.plot(shifted_t)
+# plt.plot(ref)
+# plt.plot(outliers(ref,5,120))
+#
 
-plt.plot(ref)
-plt.plot(outliers(ref,5,120))
 
 
-
-
-
-num_neig = 100
+num_neig = 500
 neig = []
-inter = np.zeros((num_neig,2))
+inter = np.zeros((num_neig,len(ref)+1))
 for i in range(0,num_neig):
      k = random.randrange(1,10)
-     position = random.randrange(1, len(ref))
-     inter[i,:] = np.array([position,k])
-     neig.append(outliers(ref, k,position))
+     num_outliers = int(len(ref) * random.randint(1,5) / 100)
+     positions = np.zeros(len(ref))
+     positions[random.sample(range(1, len(ref)), num_outliers)]=1
+     inter[i,:] = np.append(positions,k)
+     neig.append(outliers(ref, positions,k))
+
 
 
 
@@ -73,6 +86,68 @@ print(np.unique(neig_y,return_counts=True))
 
 
 
+
+inter[:,-1].shape
+inter2 = inter[:,:-1]
+variables = inter2.copy()
+variables = variables[neig_y!=test_y[ind],:]
+variables.shape
+intervals = np.zeros((variables.shape[0],len(ref)))
+intervals[:,:] = np.nan
+for i in range(0,intervals.shape[0]):
+    intervals[i,np.where(variables[i,:]==1)[0]] = i
+    plt.plot(range(0, len(ref)), intervals[i, :])
+
+
+
+
+
+
+from matplotlib.collections import LineCollection
+from matplotlib.colors import ListedColormap, BoundaryNorm
+
+x = range(0,len(ref))
+y = ref
+# dydx = np.abs(clf.coef_)[0]
+dydx = np.sum(variables, axis=0)
+# dydx = np.zeros((len(clf.coef_[0])))
+# dydx[np.where(clf.coef_[0]>0)[0]] = clf.coef_[0][np.where(clf.coef_[0]>0)[0]]
+
+
+# <dydx = (dydx - dydx.min()) / (dydx.max() - dydx.min())
+# dydx = dydx>
+
+points = np.array([x, y]).T.reshape(-1, 1, 2)
+segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+
+fig, axs = plt.subplots()
+
+# Create a continuous norm to map from data points to colors
+norm = plt.Normalize(dydx.min(), dydx.max())
+lc = LineCollection(segments, cmap='jet', norm=norm)
+# Set the values used for colormapping
+lc.set_array(dydx)
+lc.set_linewidth(2)
+line = axs.add_collection(lc)
+
+
+fig.colorbar(line, ax=axs)
+
+axs.set_xlim(0, len(x))
+axs.set_ylim(-2.5, 2.5)
+axs.set_ylim(-2, 4)
+plt.show()
+
+
+
+
+
+
+
+
+
+plt.plot(variables.sum(axis=0))
 plt.scatter(inter[neig_y=='1',0],inter[neig_y=='1',1],color='r',label="Other class")
 plt.scatter(inter[neig_y=='3',0],inter[neig_y=='3',1],color='b',label="Same class")
 plt.xlabel("start")
