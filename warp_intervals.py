@@ -83,35 +83,71 @@ def warp(ts,start,end,scale):
 
     return  t_trasnformed
 
-l = len(ref)
-
-start = 20
-end = 100
-k = 0.8
-
-start = 20
-end = 60
-k = 1.2
-
-start = 50
-end = 0
-k = 1.4
 
 
-# plt.plot(ref)
-# plt.plot(warp(ref, start, end, k))
-#
-#
+def intersection(intervals):
+    start, end = intervals.pop()
+    while intervals:
+        start_temp, end_temp = intervals.pop()
+        start = max(start, start_temp)
+        end = min(end, end_temp)
+    return [start, end]
+
+
+def unwrapcircle(z):
+    u = np.round(random.uniform(-z, 1), decimals=2)
+    return intersection([[0,1],[u, u+z]])
+
+
+
+
+from scipy.stats import betaprime
+a = 8
+p=0.5
+a = 8
+p= 0.3
+b = a*(1-p)/p
 
 
 num_neig = 500
+
+
+start_end = np.zeros((num_neig,2))
+for i in range(0,num_neig):
+    start_end[i,:]=unwrapcircle(betaprime.rvs(a, b, size=1))
+
+
+start_end[start_end<=0]=0
+start_end = start_end*len(ref)
+start_end = start_end.astype(int)
+
+
+#Comprobación
+
+# plt.hist(start_end[:,1]-start_end[:,0])
+#
+#
+# intervals = np.zeros((start_end.shape[0],len(ref)))
+# intervals[:,:] = 0
+# for i in range(0,intervals.shape[0]):
+#     intervals[i,range(start_end[i,0],start_end[i,1])] = 1
+#
+# dydx = np.sum(intervals, axis=0)
+# plt.plot(dydx)
+#
+
+
+
+
 neig = []
 inter = np.zeros((num_neig,3))
 for i in range(0,num_neig):
-     start = random.randint(1,len(ref)-10)
-     end = random.randint(start+1, len(ref))
+     start = start_end[i,0]
+     end =  start_end[i,1]
      if end == len(ref):
          end = 0
+     if start == 0:
+         start = 1
      k = np.round(random.uniform(0.7,1.3), decimals=1)
      while k == 1:
          k = np.round(random.uniform(0.7, 1.3), decimals=1)
@@ -119,7 +155,38 @@ for i in range(0,num_neig):
      neig.append(warp(ref, start, end, k))
 
 
-plt.hist(inter[:,0])
+# plt.hist(inter[:,0])
+# plt.hist(inter[:,1]-inter[:,0])
+
+variables = inter.copy()
+variables = np.delete(variables,2,axis=1)
+variables[variables[:,1]==0,1]=len(ref)
+
+
+inter_sum_ones = np.zeros((variables.shape[0],len(ref)))
+inter_sum_ones[:,:] = 0
+for i in range(0,inter_sum_ones.shape[0]):
+    inter_sum_ones[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
+
+
+
+
+plt.hist(variables[:,1].astype(int)-variables[:,0].astype(int))
+dydx = np.sum(inter_sum_ones, axis=0)
+plt.plot(dydx)
+#plt.plot(img*1000/2)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 distance_matrix = np.zeros((len(neig),train_x.shape[0]))
@@ -136,93 +203,22 @@ print(np.unique(neig_y,return_counts=True))
 
 
 
-inter
-
-inter2 = inter.copy()
-inter[inter[:,1]==0,1]=len(ref)
-neig_y
-
-test_y[ind]
-plt.scatter(inter[neig_y!=test_y[ind],0],inter[neig_y!=test_y[ind],1],color='r',label="Other class")
-plt.scatter(inter[neig_y==test_y[ind],0],inter[neig_y==test_y[ind],1],color='b',label="Same class")
-plt.xlabel("start")
-plt.ylabel("end")
-plt.legend()
-
-
-
-plt.scatter(inter[neig_y!=test_y[ind],0],inter[neig_y!=test_y[ind],2],color='r',label="Other class")
-plt.scatter(inter[neig_y==test_y[ind],0],inter[neig_y==test_y[ind],2],color='b',label="Same class")
-plt.xlabel("start")
-plt.ylabel("level")
-plt.legend()
-
-plt.scatter(inter[neig_y!=test_y[ind],1],inter[neig_y!=test_y[ind],2],color='r',label="Other class")
-plt.scatter(inter[neig_y==test_y[ind],1],inter[neig_y==test_y[ind],2],color='b',label="Same class")
-plt.xlabel("end")
-plt.ylabel("level")
-plt.legend()
-
-
-
-
-type(inter)
-variables = inter.copy()
-variables = np.delete(variables,2,axis=1)
-variables.shape
-#variables = variables[neig_y!=test_y[ind],:]
-variables.shape
-
-plt.hist(variables[:,1].max())
-
-# plt.scatter(inter[neig_y=='2',0],inter[neig_y=='2',1], marker="x", c=inter[neig_y=='1',2],label="Other class")
-# plt.scatter(inter[neig_y=='0',0],inter[neig_y=='0',1], marker="o", c=inter[neig_y=='3',2],label="Same class")
-# plt.xlabel("start")
-# plt.ylabel("end")
+#
+#
+# intervals = np.zeros((variables.shape[0],len(ref)))
+# intervals[:,:] = np.nan
+# for i in range(0,intervals.shape[0]):
+#     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
+#     if inter[neig_y!=test_y[ind],2][i]>1:
+#         colormp = 'red'
+#     else:
+#         colormp = 'green'
+#     plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
+# import matplotlib.patches as mpatches
+#
+# red_patch = mpatches.Patch(color='red', label='level > 1')
+# plt.legend(handles=[red_patch],loc='upper left')
 # plt.legend()
-
-intervals = np.zeros((variables.shape[0],len(ref)))
-intervals[:,:] = np.nan
-for i in range(0,intervals.shape[0]):
-    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
-
-    colormp = 'red'
-
-    plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
-import matplotlib.patches as mpatches
-
-red_patch = mpatches.Patch(color='red', label='level > 1')
-plt.legend(handles=[red_patch],loc='upper left')
-plt.legend()
-
-
-intervals = np.zeros((variables.shape[0],len(ref)))
-intervals[:,:] = 0
-for i in range(0,intervals.shape[0]):
-    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
-
-variables[variables[:,1]==0,1]=len(ref)
-plt.hist(variables[:,1].astype(int)-variables[:,0].astype(int))
-dydx = np.sum(intervals, axis=0)
-
-plt.plot(dydx)
-plt.plot(img*1000/2)
-
-
-intervals = np.zeros((variables.shape[0],len(ref)))
-intervals[:,:] = np.nan
-for i in range(0,intervals.shape[0]):
-    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
-    if inter[neig_y!=test_y[ind],2][i]>1:
-        colormp = 'red'
-    else:
-        colormp = 'green'
-    plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
-import matplotlib.patches as mpatches
-
-red_patch = mpatches.Patch(color='red', label='level > 1')
-plt.legend(handles=[red_patch],loc='upper left')
-plt.legend()
 
 
 
@@ -292,9 +288,9 @@ dydx = np.sum(intervals, axis=0)
 # plt.plot(img)
 # plt.plot(dydx/img)
 # len(dydx)
-img[0]= 0.000000001
-len(img)
-dydx = dydx/img
+# img[0]= 0.000000001
+# len(img)
+# dydx = dydx/img
 # dydx = np.zeros((len(clf.coef_[0])))
 # dydx[np.where(clf.coef_[0]>0)[0]] = clf.coef_[0][np.where(clf.coef_[0]>0)[0]]
 
@@ -323,6 +319,21 @@ axs.set_xlim(0, len(x))
 axs.set_ylim(-2.5, 2.5)
 axs.set_ylim(-2, 4)
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
