@@ -78,12 +78,13 @@ print(np.unique(neig_y,return_counts=True))
 
 
 
-
+inter[inter[:,1]==0,1]=len(ref)
 
 variables = inter.copy()
 #variables = np.delete(variables,2,axis=1)
 variables.shape
 variables = variables[neig_y==test_y[ind],:]
+variables = variables[neig_y!=test_y[ind],:]
 
 
 
@@ -159,7 +160,7 @@ for i in range(0,intervals.shape[0]):
     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
 np.sum(intervals, axis=0)
 
-
+plt.plot()
 
 
 from matplotlib.collections import LineCollection

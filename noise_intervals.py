@@ -110,9 +110,22 @@ print(np.unique(neig_y,return_counts=True))
 
 
 
+
+
+
+
+
+
+
+
+
+
+inter[inter[:,1]==0,1]=len(ref)
+
 variables = inter.copy()
 #variables = np.delete(variables,2,axis=1)
 variables.shape
+variables = variables[neig_y==test_y[ind],:]
 variables = variables[neig_y!=test_y[ind],:]
 
 
@@ -121,12 +134,7 @@ intervals = np.zeros((variables.shape[0],len(ref)))
 intervals[:,:] = np.nan
 for i in range(0,intervals.shape[0]):
     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
-    plt.plot(range(0, len(ref)), intervals[i, :])
-
-
-
-
-
+    #plt.plot(range(0, len(ref)), intervals[i, :])
 
 
 
@@ -198,7 +206,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 x = range(0,len(ref))
 y = ref
 # dydx = np.abs(clf.coef_)[0]
-dydx = np.sum(intervals, axis=0)
+dydx = np.sum(intervals, axis=0)/(500*p)
 # dydx = np.zeros((len(clf.coef_[0])))
 # dydx[np.where(clf.coef_[0]>0)[0]] = clf.coef_[0][np.where(clf.coef_[0]>0)[0]]
 

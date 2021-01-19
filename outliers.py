@@ -6,6 +6,7 @@ from sktime.distances.elastic import dtw_distance
 import numpy as np
 from sktime.classifiers.dictionary_based import BOSSEnsemble, BOSSIndividual
 from sklearn.metrics import f1_score
+from matplotlib.collections import LineCollection
 
 
 
@@ -42,11 +43,11 @@ test_y[ind]
 #     shifted_t = ref+add
 #     return shifted_t
 
-def outliers(ref, positions, k):
-    pos_ind = np.where(positions)[0]
+def outliers(ref, positions):
+    pos_ind = np.where(positions>0)[0]
     shifted_t = ref.copy()
     for j in pos_ind:
-        shifted_t[j] = shifted_t[j]+ np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*k/10 , 1)[0]
+        shifted_t[j] = shifted_t[j]+ np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*positions[j]/10 , 1)[0]
     return shifted_t
 
 
@@ -61,15 +62,21 @@ def outliers(ref, positions, k):
 
 num_neig = 500
 neig = []
-inter = np.zeros((num_neig,len(ref)+1))
+inter = np.zeros((num_neig,len(ref)))
 for i in range(0,num_neig):
-     k = random.randrange(1,10)
      num_outliers = int(len(ref) * random.randint(1,5) / 100)
      positions = np.zeros(len(ref))
-     positions[random.sample(range(1, len(ref)), num_outliers)]=1
-     inter[i,:] = np.append(positions,k)
-     neig.append(outliers(ref, positions,k))
+     outliers_ind = random.sample(range(1, len(ref)), num_outliers)
+     for out_ind in range(num_outliers):
+        positions[outliers_ind[out_ind]] =  random.randrange(3, 7)
+     inter[i,:] =positions
+     neig.append(outliers(ref, positions))
 
+
+plt.plot(ref)
+kk=1
+plt.plot(neig[kk])
+inter[kk,:]
 
 
 
@@ -83,6 +90,138 @@ for i in range(0, len(neig)):
 neig_y = train_y[np.argmin(distance_matrix,axis=1)]
 
 print(np.unique(neig_y,return_counts=True))
+
+
+variables = np.column_stack((inter, neig_y.astype(int)))
+
+
+# Analisis univariado:  num outliers
+other = variables[variables[:,-1]!=test_y[ind].astype(int),:][:,:-1]
+other[other>0]=1
+plt.hist(np.sum(other, axis=1),bins=4)
+
+
+same = variables[variables[:,-1]==test_y[ind].astype(int),:][:,:-1]
+same[same>0]=1
+plt.hist(np.sum(same, axis=1),bins=4)
+
+
+
+
+# Analisis univariado:  level
+other = variables[variables[:,-1]!=test_y[ind].astype(int),:][:,:-1]
+np.mean(other[other>0])
+np.std(other[other>0])
+
+
+same = variables[variables[:,-1]==test_y[ind].astype(int),:][:,:-1]
+np.mean(same[same>0])
+np.std(same[same>0])
+
+
+
+inter2 = inter.copy()
+a = inter2[:,:-1]
+a.shape
+a[a>0]=1
+
+plt.plot(np.sum(a[:,1:],axis=0))
+
+np.where(variables[:,-1]==test_y[ind].astype(int))[0]
+same = variables[variables[:,-1]==test_y[ind].astype(int),:-1]
+
+
+
+np.std(same)
+same[same>0] = 1
+np.sum(same,axis=0)
+
+
+
+
+
+x = range(0,len(ref))
+y = ref
+dydx = np.mean(same,axis=0)
+
+points = np.array([x, y]).T.reshape(-1, 1, 2)
+segments = np.concatenate([points[:-1], points[1:]], axis=1)
+fig, axs = plt.subplots()
+norm = plt.Normalize(dydx.min(), dydx.max())
+lc = LineCollection(segments, cmap='jet', norm=norm)
+lc.set_array(dydx)
+lc.set_linewidth(2)
+line = axs.add_collection(lc)
+fig.colorbar(line, ax=axs)
+axs.set_xlim(0, len(x))
+axs.set_ylim(-2.5, 2.5)
+axs.set_ylim(-2, 4)
+plt.show()
+
+
+
+
+for i in range(0, len(np.where(variables[:,-1]!=test_y[ind].astype(int))[0])):
+    plt.plot(neig[np.where(variables[:,-1]!=test_y[ind].astype(int))[0][i]])
+
+a =variables[variables[:,-1]!=test_y[ind].astype(int),:-1]
+other = variables[variables[:,-1]!=test_y[ind].astype(int),:-1]
+other[other>0] = 1
+np.sum(other,axis=0)
+
+
+np.mean(other)
+np.std(other)
+
+
+
+x = range(0,len(ref))
+y = ref
+dydx =np.mean(other, axis=0)
+
+points = np.array([x, y]).T.reshape(-1, 1, 2)
+segments = np.concatenate([points[:-1], points[1:]], axis=1)
+fig, axs = plt.subplots()
+norm = plt.Normalize(dydx.min(), dydx.max())
+lc = LineCollection(segments, cmap='jet', norm=norm)
+lc.set_array(dydx)
+lc.set_linewidth(2)
+line = axs.add_collection(lc)
+fig.colorbar(line, ax=axs)
+axs.set_xlim(0, len(x))
+axs.set_ylim(-2.5, 2.5)
+axs.set_ylim(-2, 4)
+plt.show()
+
+
+
+
+
+
+x = range(0,len(ref))
+y = ref
+dydx = np.mean(other,axis=0)-np.mean(same, axis=0)
+
+points = np.array([x, y]).T.reshape(-1, 1, 2)
+segments = np.concatenate([points[:-1], points[1:]], axis=1)
+fig, axs = plt.subplots()
+norm = plt.Normalize(dydx.min(), dydx.max())
+lc = LineCollection(segments, cmap='jet', norm=norm)
+lc.set_array(dydx)
+lc.set_linewidth(2)
+line = axs.add_collection(lc)
+fig.colorbar(line, ax=axs)
+axs.set_xlim(0, len(x))
+axs.set_ylim(-2.5, 2.5)
+axs.set_ylim(-2, 4)
+plt.show()
+
+
+
+
+
+
+
 
 
 

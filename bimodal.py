@@ -1,32 +1,17 @@
-from sktime.utils.load_data import load_from_tsfile_to_dataframe
+from pylab import *
+from scipy.optimize import curve_fit
 import random
-import numpy as np
-import matplotlib.pyplot as plt
 from sktime.distances.elastic import dtw_distance
 
 
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
+data=concatenate((normal(1,.2,5000),normal(2,.2,2500)))
+y,x,_=hist(data,100,alpha=.3,label='data')
 
-# train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
-# test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
+x=(x[1:]+x[:-1])/2 # for len(x)==len(y)
 
 
-#CBF
-# ind =2 #class 1
-# ind = 0 #Class 2
-ind = 5 #Class 3
-# #
-# # Arrowhead
-# ind=0
-# ind=100
-# ind=160
-
-ref = test_x.values[ind,:][0].values
-# plt.plot(ref)
-print(test_y[ind])
 
 def warp(ts,start,end,scale):
     ref = ts
@@ -83,6 +68,128 @@ def warp(ts,start,end,scale):
 
     return  t_trasnformed
 
+def gauss(x,mu,sigma,A):
+    return A*exp(-(x-mu)**2/2/sigma**2)
+
+def bimodal(x,mu1,sigma1,A1,mu2,sigma2,A2):
+    return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
+
+
+
+
+expected=(1,.2,250,2,.2,125)
+params,cov=curve_fit(bimodal,x,y,expected)
+
+
+ts = bimodal(x,*params)
+plot(range(0,100),bimodal(x,*params),color='red')
+
+
+
+same_ind = range(20,40)
+other_ind = range(60,80)
+
+num_class1= 100
+num_class2= 100
+
+class1 = []
+for class1_ind in range(0,num_class1):
+    k = np.round(random.uniform(0.7, 1.3), decimals=1)
+    while k == 1:
+        k = np.round(random.uniform(0.7, 1.3), decimals=1)
+    class1.append(warp(ts,20,40,k))
+
+import matplotlib.pyplot as plt
+plt.plot(ts)
+plt.plot(class1[5])
+
+
+other_reference = warp(ts,60,80,1.3)
+plt.plot(ts)
+plt.plot(other_reference)
+
+
+
+
+class2 = []
+for class2_ind in range(0,num_class2):
+    k = np.round(random.uniform(0.7, 1.3), decimals=1)
+    while k == 1:
+        k = np.round(random.uniform(0.7, 1.3), decimals=1)
+    class2.append(warp(other_reference,20,40,k))
+
+import matplotlib.pyplot as plt
+plt.plot(other_reference)
+plt.plot(class2[5])
+
+
+
+
+labels1 = np.zeros((num_class1))
+labels1[labels1==0]=1
+labels2 = np.zeros((num_class2))
+labels2[labels2==0]=2
+
+y = np.concatenate((labels1,labels2))
+y_labels = y.copy()
+len(y)
+
+
+len(class1)
+len(class2)
+
+data = class1
+for i in range(0,len(class2)):
+    data.append(class2[i])
+
+len(data)
+
+
+
+
+
+
+
+
+distance_matrix = np.zeros((num_class1+num_class2,num_class1+num_class2))
+distance_matrix.shape
+
+for i in range(0, distance_matrix.shape[0]):
+    for j in range(0, distance_matrix.shape[0]):
+        distance_matrix[i,j] = dtw_distance(data[i], data[j])
+
+
+
+
+from sklearn.model_selection import StratifiedKFold
+
+kf = StratifiedKFold(n_splits=5, shuffle=True)
+accu = []
+for train_index, test_index in kf.split(distance_matrix,y):
+    #print("TRAIN:", train_index, "TEST:", test_index)
+    y_train, y_test = y[train_index], y[test_index]
+
+    distance_matrix_fold = distance_matrix[test_index, :]
+    distance_matrix_fold = distance_matrix_fold[:, train_index]
+
+
+    pred = []
+    for i in range(0,len(test_index)):
+        ind = np.argmin(distance_matrix_fold[i,:])
+        pred.append(y_train[train_index[ind]])
+
+    accu.append((np.sum(pred==y_test)/len(y_test)))
+
+np.mean(accu)
+
+
+
+ind_explanation=20
+# y_labels[test_index]
+y_labels[test_index[ind_explanation]]
+num_neig = 500
+ref = data[test_index[ind_explanation]]
+plt.plot(ref)
 
 
 def intersection(intervals):
@@ -102,16 +209,9 @@ def unwrapcircle(z):
 
 
 from scipy.stats import betaprime
-# a = 8
-# p=0.5
 a = 8
 p= 0.3
 b = a*(1-p)/p
-
-
-num_neig = 500
-
-
 start_end = np.zeros((num_neig,2))
 for i in range(0,num_neig):
     start_end[i,:]=unwrapcircle(betaprime.rvs(a, b, size=1))
@@ -120,23 +220,6 @@ for i in range(0,num_neig):
 start_end[start_end<=0]=0
 start_end = start_end*len(ref)
 start_end = start_end.astype(int)
-
-
-#Comprobación
-
-# plt.hist(start_end[:,1]-start_end[:,0])
-#
-#
-# intervals = np.zeros((start_end.shape[0],len(ref)))
-# intervals[:,:] = 0
-# for i in range(0,intervals.shape[0]):
-#     intervals[i,range(start_end[i,0],start_end[i,1])] = 1
-#
-# dydx = np.sum(intervals, axis=0)
-# plt.plot(dydx)
-#
-
-
 
 
 neig = []
@@ -155,101 +238,43 @@ for i in range(0,num_neig):
      neig.append(warp(ref, start, end, k))
 
 
-# plt.hist(inter[:,0])
-# plt.hist(inter[:,1]-inter[:,0])
-inter[inter[:,1]==0,1]=len(ref)
-variables = inter.copy()
-variables = np.delete(variables,2,axis=1)
-variables[variables[:,1]==0,1]=len(ref)
 
 
-inter_sum_ones = np.zeros((variables.shape[0],len(ref)))
-inter_sum_ones[:,:] = 0
-for i in range(0,inter_sum_ones.shape[0]):
-    inter_sum_ones[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
-
-
-
-
-plt.hist(variables[:,1].astype(int)-variables[:,0].astype(int))
-dydx = np.sum(inter_sum_ones, axis=0)
-plt.plot(dydx)
-#plt.plot(img*1000/2)
-
-
-
-
-
-
-
-
-
-#
-#
-# intervals = np.zeros((inter.shape[0],len(ref)))
-# intervals[:,:] = np.nan
-# for i in range(0,intervals.shape[0]):
-#     intervals[i,range(inter[i,0].astype(int),inter[i,1].astype(int))] = i
-#     if inter[i,2]>1:
-#         colormp = 'red'
-#     else:
-#         colormp = 'green'
-#     plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
-#
-# import matplotlib.patches as mpatches
-# red_patch = mpatches.Patch(color='red', label='level > 1')
-# plt.legend(handles=[red_patch],loc='upper left')
-
-
-
-
-
-
-distance_matrix = np.zeros((len(neig),train_x.shape[0]))
+distance_matrix_neig = np.zeros((len(neig),len(train_index)))
 
 for i in range(0, len(neig)):
-    for j in range(0, train_x.shape[0]):
-        distance_matrix[i,j] = dtw_distance(neig[i], np.asarray(train_x.values[j,:][0]))
+    for j in range(0, len(train_index)):
+        distance_matrix_neig[i,j] = dtw_distance(neig[i], data[train_index[j]])
+    print(i)
 
 
-
-neig_y = train_y[np.argmin(distance_matrix,axis=1)]
-
+distance_matrix_neig.shape
+neig_y = y[train_index][np.argmin(distance_matrix_neig,axis=1)]
 print(np.unique(neig_y,return_counts=True))
 
 
 
-#
-#
-# intervals = np.zeros((variables.shape[0],len(ref)))
-# intervals[:,:] = np.nan
-# for i in range(0,intervals.shape[0]):
-#     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
-#     if inter[neig_y!=test_y[ind],2][i]>1:
-#         colormp = 'red'
-#     else:
-#         colormp = 'green'
-#     plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
-# import matplotlib.patches as mpatches
-#
-# red_patch = mpatches.Patch(color='red', label='level > 1')
-# plt.legend(handles=[red_patch],loc='upper left')
-# plt.legend()
 
 
+
+
+inter[inter[:,1]==0,1]=len(ref)
 
 
 
 #Same class
-ind_sort = inter[neig_y== test_y[ind], 2].argsort()
+ind_sort = inter[neig_y== y_labels[test_index[ind_explanation]], 2].argsort()
 inter2 = inter.copy()
-inter2 = inter2[neig_y == test_y[ind], :][ind_sort]
+inter2 = inter2[neig_y ==y_labels[test_index[ind_explanation]], :][ind_sort]
 variables = inter2.copy()
 
+
+
+
 #Other class
-ind_sort = inter[neig_y!= test_y[ind], 2].argsort()
+ind_sort = inter[neig_y!= y_labels[test_index[ind_explanation]], 2].argsort()
 inter2 = inter.copy()
-inter2 = inter2[neig_y != test_y[ind], :][ind_sort]
+inter2 = inter2[neig_y != y_labels[test_index[ind_explanation]], :][ind_sort]
 variables = inter2.copy()
 
 #variables = np.delete(variables,2,axis=1)
@@ -259,11 +284,9 @@ variables = inter2.copy()
 
 
 #same class
-
 #greater than 1
 long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
 largest_indices1 =long_ind1
-
 #smaller
 long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
 largest_indices2 =long_ind2
@@ -271,7 +294,6 @@ largest_indices2 =long_ind2
 
 
 #other class
-
 #greater than 1
 long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
 largest_indices1 = long_ind1[::-1]
@@ -302,8 +324,8 @@ red_patch = mpatches.Patch(color='red', label='level > 1')
 plt.legend(handles=[red_patch],loc='upper left')
 
 
-
-
+# plt.plot(ref)
+# plt.plot(neig[11])
 
 intervals = np.zeros((variables.shape[0],len(ref)))
 for i in range(0,intervals.shape[0]):
@@ -314,11 +336,11 @@ np.sum(intervals, axis=0)
 # point_other = np.sum(intervals, axis=0)
 # point_same = np.sum(intervals, axis=0)
 
-point_other = np.sum(intervals, axis=0)/(500*p)
-point_same = np.sum(intervals, axis=0)/(500*p)
-
-point_other-point_same
-
+# point_other = np.sum(intervals, axis=0)/(500*p)
+# point_same = np.sum(intervals, axis=0)/(500*p)
+#
+# point_other-point_same
+#
 
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
@@ -361,134 +383,5 @@ line = axs.add_collection(lc)
 fig.colorbar(line, ax=axs)
 
 axs.set_xlim(0, len(x))
-axs.set_ylim(-2.5, 2.5)
-axs.set_ylim(-2, 4)
+axs.set_ylim(0, 250)
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-inter[inter[:,1]==0,1] = l
-labels = neig_y
-
-co = 0
-for lbl in np.unique(labels):
-    indices = np.where(labels == lbl)
-    ax.scatter(inter[indices,0], inter[indices,1], inter[indices,2], s=50, alpha=0.6, label=str(lbl), cmap='rainbow')
-    co = co+1
-    print(inter[:,0], inter[:,1], inter[:,2],lbl)
-
-ax.set_xlabel('start')
-ax.set_ylabel('end')
-ax.set_zlabel('level')
-ax.legend()
-
-plt.show()
-
-
-
-X= inter
-y = neig_y
-
-# Logistic regression
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.metrics import classification_report
-from sklearn.metrics import f1_score
-
-clf = LogisticRegression(random_state=0,max_iter=5000)
-
-kf = StratifiedKFold(n_splits=3)
-accu = []
-for train_index, test_index in kf.split(X,y):
-    X_train, X_test = X[train_index,:], X[test_index,:]
-    y_train, y_test = y[train_index], y[test_index]
-
-    clf.fit(X_train, y_train)
-    pred = clf.predict(X_test)
-    accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
-    print(classification_report(y_test, pred))
-
-print(np.mean(accu))
-
-clf.coef_
-
-
-
-
-
-
-
-from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier()
-
-
-kf = StratifiedKFold(n_splits=3)
-accu = []
-for train_index, test_index in kf.split(X,y):
-    X_train, X_test = X[train_index,:], X[test_index,:]
-    y_train, y_test = y[train_index], y[test_index]
-
-    clf.fit(X_train, y_train)
-    pred = clf.predict(X_test)
-    accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
-    print(classification_report(y_test, pred))
-
-
-print(np.mean(accu))
-
-
-
-
-import pandas as pd
-X1 = pd.DataFrame(X)
-
-clf.fit(X1, y)
-
-
-
-from sklearn import tree
-
-tree.plot_tree(clf,feature_names=np.array(['start','end','level']))
-fig, ax = plt.subplots(figsize=(12, 12))
-tree.plot_tree(clf, class_names=np.array(["C1","C3"]),impurity=False, fontsize=10)
-#tree.plot_tree(clf, class_names=np.array(["C1","C2","C3"]),impurity=False, fontsize=10)
-plt.show()
-
-
-L = 128
-import numpy as np
-def f(x):
-    suma = np.sum(1/(L-np.asarray(range(0,x))))
-    return ((L-x)/L)*suma
-
-
-img = np.zeros(L)
-for i in range(0,L):
-    img[i] = f(i)
-
-import matplotlib.pyplot as plt
-
-plt.plot(img)
-np.argmax(img)
-np.sum(img)
-
-
