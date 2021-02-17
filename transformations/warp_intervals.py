@@ -28,6 +28,18 @@ ref = test_x.values[ind,:][0].values
 # plt.plot(ref)
 print(test_y[ind])
 
+
+#
+# dist_prueba = []
+# for i in range(0,train_x.shape[0]):
+#     dist_prueba.append(dtw_distance(ref,train_x.values[i,:][0].values))
+#
+#
+# print(train_y[np.argmin(dist_prueba)])
+#
+
+
+
 def warp(ts,start,end,scale):
     ref = ts
     k = scale
@@ -171,9 +183,9 @@ for i in range(0,inter_sum_ones.shape[0]):
 
 
 
-plt.hist(variables[:,1].astype(int)-variables[:,0].astype(int))
+#plt.hist(variables[:,1].astype(int)-variables[:,0].astype(int))
 dydx = np.sum(inter_sum_ones, axis=0)
-plt.plot(dydx)
+
 #plt.plot(img*1000/2)
 
 
@@ -217,6 +229,24 @@ neig_y = train_y[np.argmin(distance_matrix,axis=1)]
 
 print(np.unique(neig_y,return_counts=True))
 
+plt.plot(dydx)
+
+
+
+
+inter
+
+
+inter_binary = np.zeros((inter.shape[0],len(ref)))
+for i in range(0,inter.shape[0]):
+    inter_binary[i,range(inter[i,0].astype(int),inter[i,1].astype(int))] = inter[i,2]
+np.sum(inter_binary, axis=0)
+
+
+inter_binary.shape
+
+
+
 
 
 #
@@ -245,33 +275,186 @@ ind_sort = inter[neig_y== test_y[ind], 2].argsort()
 inter2 = inter.copy()
 inter2 = inter2[neig_y == test_y[ind], :][ind_sort]
 variables = inter2.copy()
+#greater than 1
+long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
+largest_indices1 =long_ind1
+#smaller
+long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
+largest_indices2 =long_ind2
+
+same_int = inter2
+
+
+
 
 #Other class
 ind_sort = inter[neig_y!= test_y[ind], 2].argsort()
 inter2 = inter.copy()
 inter2 = inter2[neig_y != test_y[ind], :][ind_sort]
 variables = inter2.copy()
-
+#greater than 1
+long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
+largest_indices1 = long_ind1[::-1]
+largest_indices1 = long_ind1
+#smaller
+long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
+largest_indices2 = long_ind2[::-1]
+largest_indices2 = long_ind2
 #variables = np.delete(variables,2,axis=1)
 
 # variables = variables[neig_y==test_y[ind],:]
 # variables.shape
 
 
-#same class
-
-#greater than 1
-long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
-largest_indices1 =long_ind1
-
-#smaller
-long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
-largest_indices2 =long_ind2
+other_int = inter2
 
 
 
-#other class
+same_int = same_int[:,[0,1]]
+other_int = other_int[:,[0,1]]
+same_int.shape
+other_int.shape
 
+same_int = np.delete(same_int,175, axis=0)
+same_int = np.delete(same_int,107, axis=0)
+same_int.shape
+
+#
+# from scipy.spatial.distance import directed_hausdorff
+# a =np.array([2,3,4])
+# b =np.array([1,2,3,4])
+# a = np.asarray(range(same_int[0,:][0].astype(int),same_int[0,:][1].astype(int)))
+# a = a.reshape(-1,1)
+# b =  np.asarray(range(other_int[0, :][0].astype(int), other_int[0, :][1].astype(int)))
+# b = b.reshape(-1,1)
+
+from scipy.spatial.distance import directed_hausdorff
+# a = np.arange(2,26)
+# b = np.arange(24,50)
+# a = a.reshape(-1,1)
+# b = b.reshape(-1,1)
+#
+#
+# max(directed_hausdorff(a,b)[0],directed_hausdorff(b,a)[0])
+
+
+
+# ind_int = []
+# dist_int = []
+# for i in range(0,same_int.shape[0]):
+#     for j in range(0,other_int.shape[0]):
+#         a = np.asarray(range(same_int[i, :][0].astype(int), same_int[i, :][1].astype(int)))
+#         a = a.reshape(-1, 1)
+#         b = np.asarray(range(other_int[j, :][0].astype(int), other_int[j, :][1].astype(int)))
+#         b = b.reshape(-1, 1)
+#         dist_int.append(max(directed_hausdorff(a,b)[0],directed_hausdorff(b,a)[0]))
+#         ind_int.append([i,j])
+#
+# plt.hist(dist_int,bins=20)
+# len(dist_int)
+
+
+from scipy.spatial.distance import directed_hausdorff
+dist_int = np.zeros((same_int.shape[0],other_int.shape[0]))
+for i in range(0,same_int.shape[0]):
+    for j in range(0,other_int.shape[0]):
+        a = np.asarray(range(same_int[i, :][0].astype(int), same_int[i, :][1].astype(int)))
+        a = a.reshape(-1, 1)
+        b = np.asarray(range(other_int[j, :][0].astype(int), other_int[j, :][1].astype(int)))
+        b = b.reshape(-1, 1)
+        dist_int[i,j]=max(directed_hausdorff(a,b)[0],directed_hausdorff(b,a)[0])
+
+np.min(dist_int)
+np.max(dist_int)
+
+
+dist_array= dist_int.reshape(1,-1)[0]
+
+len(dist_array)
+
+
+
+plt.hist(dist_array,bins=20)
+
+
+
+min_per_same = []
+perc_per_same = []
+thresh_per_same = []
+for i in range(0,dist_int.shape[0]):
+    min_per_same.append(np.argmin(dist_int[i,:]))
+    perc_per_same.append(np.where(dist_int[i,:]<np.percentile(dist_int,q=2))[0])
+    thresh_per_same.append(np.where(dist_int[i,:]<1)[0])
+
+len(thresh_per_same)
+thresh_per_same[199]
+
+np.where(dist_int[199,:]<1)
+
+
+same_int[199,:]
+
+
+other_int[60,:]
+
+
+
+num = []
+for threshold in range(1,20):
+    thresh_per_same = []
+    for i in range(0,dist_int.shape[0]):
+        min_per_same.append(np.argmin(dist_int[i,:]))
+        perc_per_same.append(np.where(dist_int[i,:]<np.percentile(dist_int,q=2))[0])
+        thresh_per_same.append(np.where(dist_int[i,:]<threshold)[0])
+    k = np.concatenate(thresh_per_same, axis=0)
+    num.append(len(np.unique(k, return_counts=True)[0]))
+
+
+
+plt.plot(range(1,20),num)
+
+
+np.where(same_int[:,1]==1)
+
+np.unique(min_per_same, return_counts=True)
+len(np.unique(min_per_same))
+
+# len(perc_per_same[107])
+k = np.concatenate(perc_per_same, axis=0 )
+np.unique(k, return_counts=True)
+len(np.unique(k, return_counts=True)[0])
+
+
+
+
+k = np.concatenate(thresh_per_same, axis=0 )
+np.unique(k, return_counts=True)
+len(np.unique(k, return_counts=True)[0])
+
+
+
+#
+#
+# np.unique(neig_y, return_counts=True)[1][0]
+#
+# len(np.unique(min_per_same))
+
+other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(min_per_same))
+
+
+other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+len(other_index)
+
+
+
+
+
+#Other class
+ind_sort = inter[neig_y!= test_y[ind], 2].argsort()
+inter2 = inter.copy()
+inter2 = inter2[neig_y != test_y[ind], :][ind_sort]
+inter2 = inter2[other_index,:]
+variables = inter2.copy()
 #greater than 1
 long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
 largest_indices1 = long_ind1[::-1]
@@ -284,8 +467,20 @@ largest_indices2 = long_ind2
 
 
 
+# ind_int[np.where(dist_int>np.percentile(dist_int,q=30))[0]]
+# ind_int[np.array([0,1])]
+
+
+
+
+
+
+
+
+
 
 variables2 = np.concatenate((variables[inter2[:,2]>1,:][largest_indices1,:],variables[inter2[:,2]<1,:][largest_indices2,:] ))
+
 
 intervals = np.zeros((variables2.shape[0],len(ref)))
 intervals[:,:] = np.nan
@@ -305,12 +500,32 @@ plt.legend(handles=[red_patch],loc='upper left')
 
 
 
+
+
+
+
+
+
+
 intervals = np.zeros((variables.shape[0],len(ref)))
 for i in range(0,intervals.shape[0]):
     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
 np.sum(intervals, axis=0)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+inter
 # point_other = np.sum(intervals, axis=0)
 # point_same = np.sum(intervals, axis=0)
 
@@ -323,25 +538,12 @@ point_other-point_same
 from matplotlib.collections import LineCollection
 from matplotlib.colors import ListedColormap, BoundaryNorm
 
-x = range(0,len(ref))
-y = ref
+x = range(0,len(ref)-1)
+y = ref[1:]
 # dydx = np.abs(clf.coef_)[0]
 dydx = np.sum(intervals, axis=0)/(500*p)
-# dydx = np.sum(intervals, axis=0)
-# dydx = point_other-point_same
-# plt.plot(dydx)
-# plt.plot(img)
-# plt.plot(dydx/img)
-# len(dydx)
-# img[0]= 0.000000001
-# len(img)
-# dydx = dydx/img
-# dydx = np.zeros((len(clf.coef_[0])))
-# dydx[np.where(clf.coef_[0]>0)[0]] = clf.coef_[0][np.where(clf.coef_[0]>0)[0]]
+dydx = dydx[1:]
 
-
-# <dydx = (dydx - dydx.min()) / (dydx.max() - dydx.min())
-# dydx = dydx>
 
 points = np.array([x, y]).T.reshape(-1, 1, 2)
 segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -405,7 +607,22 @@ plt.show()
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 X= inter
+
+X= inter_binary
+
 y = neig_y
 
 # Logistic regression
@@ -427,9 +644,47 @@ for train_index, test_index in kf.split(X,y):
     accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
     print(classification_report(y_test, pred))
 
+clf.fit(X,y)
 print(np.mean(accu))
 
-clf.coef_
+
+
+
+
+from matplotlib.collections import LineCollection
+from matplotlib.colors import ListedColormap, BoundaryNorm
+
+x = range(0,len(ref))
+y = ref
+# dydx = np.abs(clf.coef_)[0]
+dydx = clf.coef_[0]
+len(dydx)
+
+
+points = np.array([x, y]).T.reshape(-1, 1, 2)
+segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+
+fig, axs = plt.subplots()
+
+# Create a continuous norm to map from data points to colors
+norm = plt.Normalize(dydx.min(), dydx.max())
+lc = LineCollection(segments, cmap='jet', norm=norm)
+# Set the values used for colormapping
+lc.set_array(dydx)
+lc.set_linewidth(2)
+line = axs.add_collection(lc)
+
+
+fig.colorbar(line, ax=axs)
+
+axs.set_xlim(0, len(x))
+axs.set_ylim(-2.5, 2.5)
+axs.set_ylim(-2, 4)
+plt.show()
+
+
+
 
 
 

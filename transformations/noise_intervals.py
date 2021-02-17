@@ -9,15 +9,14 @@ from sklearn.metrics import f1_score
 
 
 
-
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
 
 # train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
 # test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
 
-# CBF
+#CBF
 # ind =2 #class 1
 # ind = 0 #Class 2
 ind = 5 #Class 3
@@ -29,14 +28,15 @@ ind = 5 #Class 3
 
 ref = test_x.values[ind,:][0].values
 # plt.plot(ref)
+test_y[ind]
 
 
 
 
-
-def scale(ref,start, end, k):
+def noise(ref, start, end, k):
     shifted_t = ref.copy()
-    shifted_t[range(start,end)] = ref[range(start,end)]*k
+    noise = np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*k/100 , len(range(start,end)))
+    shifted_t[range(start,end)] = ref[range(start,end)]+noise
     return shifted_t
 
 
@@ -53,6 +53,7 @@ def intersection(intervals):
 def unwrapcircle(z):
     u = np.round(random.uniform(-z, 1), decimals=2)
     return intersection([[0,1],[u, u+z]])
+
 
 
 
@@ -78,33 +79,20 @@ start_end = start_end.astype(int)
 
 
 
-# plt.plot(ref)
-# plt.plot(scale(ref,1.3))
-
-
-
-
-
-
-num_neig = 500
+num_neig =500
 neig = []
 inter = np.zeros((num_neig,3))
 for i in range(0,num_neig):
      start = start_end[i, 0]
      end = start_end[i, 1]
-     k = np.round(random.uniform(0.7,1.3), decimals=1)
-     while k == 1:
-         k = np.round(random.uniform(0.7, 1.3), decimals=1)
+     k = random.randrange(1,10)
      inter[i,:] = np.array([start,end,k])
-     neig.append(scale(ref,start, end, k))
+     neig.append(noise(ref, start,end,k))
 
-#
-# plt.plot(neig[2])
-# inter[2,:]
-# plt.plot(scale(ref,0, 120, 1.2))
 
-# plt.plot(ref)
-
+plt.plot(ref)
+plt.plot(neig[1])
+inter[1,:]
 
 distance_matrix = np.zeros((len(neig),train_x.shape[0]))
 
@@ -119,81 +107,88 @@ print(np.unique(neig_y,return_counts=True))
 
 
 
-#
-#
-# clf = BOSSEnsemble()
-# clf.fit(train_x,train_y.astype(int))
-# y_pred = clf.predict(test_x)
-# f1_score(test_y.astype(int),np.asarray(y_pred).astype(int),average='weighted')
-#
-#
-#
-#
-#
-#
-# pred_neig = []
-# for i in range(0,len(neig)):
-#     test_neig = np.transpose(np.column_stack((neig[i],neig[i])))
-#     pred_neig.append(clf.predict(test_neig)[0])
-#
-# print(np.unique(pred_neig,return_counts=True))
 
 
-ind_sort = inter[neig_y != test_y[ind], 2].argsort()
-inter2 = inter.copy()
-inter2 = inter2[neig_y != test_y[ind], :][ind_sort]
 
 
-variables = inter2.copy()
-variables.shape
+
+
+
+
+
+
+
+
+
+inter[inter[:,1]==0,1]=len(ref)
+
+variables = inter.copy()
 #variables = np.delete(variables,2,axis=1)
-
-# variables = variables[neig_y==test_y[ind],:]
-# variables.shape
-
-#greater than 1
-long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
-
-variables[inter2[:,2]>1,:][long_ind1,:].shape
-
-#smaller
-long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
-
-variables[inter2[:,2]<1,:][long_ind2,:].shape
+variables.shape
+variables = variables[neig_y==test_y[ind],:]
+variables = variables[neig_y!=test_y[ind],:]
 
 
-variables2 = np.concatenate((variables[inter2[:,2]>1,:][long_ind1,:],variables[inter2[:,2]<1,:][long_ind2,:] ))
 
-intervals = np.zeros((variables2.shape[0],len(ref)))
+intervals = np.zeros((variables.shape[0],len(ref)))
 intervals[:,:] = np.nan
 for i in range(0,intervals.shape[0]):
-    intervals[i,range(variables2[i,0].astype(int),variables2[i,1].astype(int))] = i
-    if variables2[i,2]>1:
-        colormp = 'red'
-    else:
-        colormp = 'green'
-    plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
+    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
+    #plt.plot(range(0, len(ref)), intervals[i, :])
+
+
+
+
+
+import matplotlib as mpl
+cmap = plt.cm.get_cmap("jet")
+# norm = mpl.colors.SymLogNorm(2, vmin=inter[neig_y==test_y[ind],:][:,1].min(), vmax=inter[neig_y==test_y[ind],:][:,1].max())
+# norm = plt.Normalize(inter[neig_y==test_y[ind],:][:,1].min(), inter[neig_y==test_y[ind],:][:,1].max())
+
+
+
+ind_long= (variables[:,1]-variables[:,0]).argsort()
+ind_long= variables[:,2].argsort()
+#ind_long= variables[:,0].argsort()
+variables = variables[ind_long,:]
+# long_sort = (variables[:,1]-variables[:,0])[ind_long]
+norm = plt.Normalize(variables[:,2].min(),variables[:,2].max())
+sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
+sm.set_array([])
+
+
+
+
+intervals = np.zeros((variables.shape[0],len(ref)))
+intervals[:,:] = np.nan
+for i in range(0,intervals.shape[0]):
+    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
+    plt.plot(range(0, intervals.shape[1]), intervals[i, :],color=cmap(norm(variables[i,2].astype(int))))
+
+cbar = plt.colorbar(sm, ticks=variables[:,2], format=mpl.ticker.ScalarFormatter(),
+                     fraction=0.1, pad=0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import matplotlib.patches as mpatches
-red_patch = mpatches.Patch(color='red', label='level > 1')
-plt.legend(handles=[red_patch],loc='upper left')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# red_patch = mpatches.Patch(color='red', label='level > 1')
+# plt.legend(handles=[red_patch],loc='upper left')
 
 
 
@@ -211,7 +206,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 x = range(0,len(ref))
 y = ref
 # dydx = np.abs(clf.coef_)[0]
-dydx = np.sum(intervals, axis=0)
+dydx = np.sum(intervals, axis=0)/(500*p)
 # dydx = np.zeros((len(clf.coef_[0])))
 # dydx[np.where(clf.coef_[0]>0)[0]] = clf.coef_[0][np.where(clf.coef_[0]>0)[0]]
 
@@ -254,6 +249,13 @@ plt.show()
 
 
 
+
+
+
+
+
+
+
 scatter = plt.scatter(range(0,len(inter)),inter,c=neig_y.astype(int))
 plt.legend(handles=scatter.legend_elements()[0], labels=['Other class', 'Same class'])
 
@@ -261,18 +263,43 @@ plt.legend(handles=scatter.legend_elements()[0], labels=['Other class', 'Same cl
 import pandas as pd
 # pivot and plot
 y_plot = neig_y.copy()
-y_plot[y_plot=='1'] = 'Other class'
 y_plot[y_plot=='3'] = 'Same class'
+y_plot[y_plot=='1'] = 'Other class'
+
 df = pd.DataFrame({'level': inter.reshape(1,-1)[0], 'class': y_plot})
-ax = df.pivot(columns="class", values="level").plot.hist(bins=5)
+ax = df.pivot(columns="class", values="level").reindex(columns=["S","O"]).plot.hist(bins=9, alpha=0.5)
 ax.set_xlabel("level")
 ax.legend()
-plt.show()
+
+
+
+
+clf = BOSSEnsemble()
+clf.fit(train_x,train_y.astype(int))
+y_pred = clf.predict(test_x)
+f1_score(test_y.astype(int),np.asarray(y_pred).astype(int),average='weighted')
+
+
+
+
+
+
+pred_neig = []
+for i in range(0,len(neig)):
+    test_neig = np.transpose(np.column_stack((neig[i],neig[i])))
+    pred_neig.append(clf.predict(test_neig)[0])
+
+print(np.unique(pred_neig,return_counts=True))
+
+
+
+
 
 
 
 X= inter
 y = neig_y
+
 
 # Logistic regression
 from sklearn.linear_model import LogisticRegression
@@ -326,8 +353,9 @@ clf.fit(X, y)
 
 
 from sklearn import tree
-
-#tree.plot_tree(clf)
+inter[neig_y=="1"]
+neig_y[inter.reshape(1,-1)[0]==3]
+tree.plot_tree(clf,feature_names=np.array(['level']),class_names=np.array(["C1","C3"]))
 fig, ax = plt.subplots(figsize=(12, 12))
 tree.plot_tree(clf, class_names=np.array(["C1","C3","C3"]),impurity=False, fontsize=10)
 plt.show()

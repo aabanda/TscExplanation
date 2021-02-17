@@ -7,8 +7,8 @@ from sktime.distances.elastic import dtw_distance
 
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
+train_x, train_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
 # train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
 # test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
@@ -119,7 +119,7 @@ for i in range(0,num_neig):
      neig.append(warp(ref, start, end, k))
 
 
-plt.hist(inter[:,0])
+# plt.hist(inter[:,0])
 
 
 distance_matrix = np.zeros((len(neig),train_x.shape[0]))
@@ -136,44 +136,48 @@ print(np.unique(neig_y,return_counts=True))
 
 
 
-inter
 
-inter2 = inter.copy()
+
 inter[inter[:,1]==0,1]=len(ref)
+(inter[:,1]-inter[:,0])>0
+inter2 = inter.copy()
 neig_y
 
-test_y[ind]
-plt.scatter(inter[neig_y!=test_y[ind],0],inter[neig_y!=test_y[ind],1],color='r',label="Other class")
-plt.scatter(inter[neig_y==test_y[ind],0],inter[neig_y==test_y[ind],1],color='b',label="Same class")
-plt.xlabel("start")
-plt.ylabel("end")
-plt.legend()
+
+
+#
+#
+# test_y[ind]
+# plt.scatter(inter[neig_y!=test_y[ind],0],inter[neig_y!=test_y[ind],1],color='r',label="Other class")
+# plt.scatter(inter[neig_y==test_y[ind],0],inter[neig_y==test_y[ind],1],color='b',label="Same class")
+# plt.xlabel("start")
+# plt.ylabel("end")
+# plt.legend()
+#
+#
+#
+# plt.scatter(inter[neig_y!=test_y[ind],0],inter[neig_y!=test_y[ind],2],color='r',label="Other class")
+# plt.scatter(inter[neig_y==test_y[ind],0],inter[neig_y==test_y[ind],2],color='b',label="Same class")
+# plt.xlabel("start")
+# plt.ylabel("level")
+# plt.legend()
+#
+# plt.scatter(inter[neig_y!=test_y[ind],1],inter[neig_y!=test_y[ind],2],color='r',label="Other class")
+# plt.scatter(inter[neig_y==test_y[ind],1],inter[neig_y==test_y[ind],2],color='b',label="Same class")
+# plt.xlabel("end")
+# plt.ylabel("level")
+# plt.legend()
 
 
 
-plt.scatter(inter[neig_y!=test_y[ind],0],inter[neig_y!=test_y[ind],2],color='r',label="Other class")
-plt.scatter(inter[neig_y==test_y[ind],0],inter[neig_y==test_y[ind],2],color='b',label="Same class")
-plt.xlabel("start")
-plt.ylabel("level")
-plt.legend()
 
-plt.scatter(inter[neig_y!=test_y[ind],1],inter[neig_y!=test_y[ind],2],color='r',label="Other class")
-plt.scatter(inter[neig_y==test_y[ind],1],inter[neig_y==test_y[ind],2],color='b',label="Same class")
-plt.xlabel("end")
-plt.ylabel("level")
-plt.legend()
-
-
-
-
-type(inter)
+# type(inter)
 variables = inter.copy()
 variables = np.delete(variables,2,axis=1)
 variables.shape
-#variables = variables[neig_y!=test_y[ind],:]
+variables = variables[neig_y!=test_y[ind],:]
 variables.shape
 
-plt.hist(variables[:,1].max())
 
 # plt.scatter(inter[neig_y=='2',0],inter[neig_y=='2',1], marker="x", c=inter[neig_y=='1',2],label="Other class")
 # plt.scatter(inter[neig_y=='0',0],inter[neig_y=='0',1], marker="o", c=inter[neig_y=='3',2],label="Same class")
@@ -181,48 +185,25 @@ plt.hist(variables[:,1].max())
 # plt.ylabel("end")
 # plt.legend()
 
-intervals = np.zeros((variables.shape[0],len(ref)))
-intervals[:,:] = np.nan
-for i in range(0,intervals.shape[0]):
-    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
 
-    colormp = 'red'
-
-    plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
-import matplotlib.patches as mpatches
-
-red_patch = mpatches.Patch(color='red', label='level > 1')
-plt.legend(handles=[red_patch],loc='upper left')
-plt.legend()
-
-
-intervals = np.zeros((variables.shape[0],len(ref)))
-intervals[:,:] = 0
-for i in range(0,intervals.shape[0]):
-    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
-
-variables[variables[:,1]==0,1]=len(ref)
-plt.hist(variables[:,1].astype(int)-variables[:,0].astype(int))
-dydx = np.sum(intervals, axis=0)
-
-plt.plot(dydx)
-plt.plot(img*1000/2)
+#
+# intervals = np.zeros((variables.shape[0],len(ref)))
+# intervals[:,:] = np.nan
+# for i in range(0,intervals.shape[0]):
+#     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
+#     if inter[neig_y!=test_y[ind],2][i]>1:
+#         colormp = 'red'
+#     else:
+#         colormp = 'green'
+#     plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
+# import matplotlib.patches as mpatches
+#
+# red_patch = mpatches.Patch(color='red', label='level > 1')
+# plt.legend(handles=[red_patch],loc='upper left')
+# plt.legend()
 
 
-intervals = np.zeros((variables.shape[0],len(ref)))
-intervals[:,:] = np.nan
-for i in range(0,intervals.shape[0]):
-    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = i
-    if inter[neig_y!=test_y[ind],2][i]>1:
-        colormp = 'red'
-    else:
-        colormp = 'green'
-    plt.plot(range(0, len(ref)), intervals[i, :],c=colormp)
-import matplotlib.patches as mpatches
 
-red_patch = mpatches.Patch(color='red', label='level > 1')
-plt.legend(handles=[red_patch],loc='upper left')
-plt.legend()
 
 
 
@@ -230,9 +211,9 @@ plt.legend()
 
 #Class change sorted
 
-ind_sort = inter[neig_y == test_y[ind], 2].argsort()
+ind_sort = inter[neig_y != test_y[ind], 2].argsort()
 inter2 = inter.copy()
-inter2 = inter2[neig_y == test_y[ind], :][ind_sort]
+inter2 = inter2[neig_y != test_y[ind], :][ind_sort]
 
 
 variables = inter2.copy()
@@ -273,6 +254,11 @@ plt.legend(handles=[red_patch],loc='upper left')
 
 
 
+
+
+
+
+
 intervals = np.zeros((variables.shape[0],len(ref)))
 for i in range(0,intervals.shape[0]):
     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
@@ -288,13 +274,6 @@ x = range(0,len(ref))
 y = ref
 # dydx = np.abs(clf.coef_)[0]
 dydx = np.sum(intervals, axis=0)
-# plt.plot(dydx)
-# plt.plot(img)
-# plt.plot(dydx/img)
-# len(dydx)
-img[0]= 0.000000001
-len(img)
-dydx = dydx/img
 # dydx = np.zeros((len(clf.coef_[0])))
 # dydx[np.where(clf.coef_[0]>0)[0]] = clf.coef_[0][np.where(clf.coef_[0]>0)[0]]
 
@@ -327,112 +306,70 @@ plt.show()
 
 
 
+#
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
+# inter[inter[:,1]==0,1] = l
+# labels = neig_y
+#
+# co = 0
+# for lbl in np.unique(labels):
+#     indices = np.where(labels == lbl)
+#     ax.scatter(inter[indices,0], inter[indices,1], inter[indices,2], s=50, alpha=0.6, label=str(lbl), cmap='rainbow')
+#     co = co+1
+#     print(inter[:,0], inter[:,1], inter[:,2],lbl)
+#
+# ax.set_xlabel('start')
+# ax.set_ylabel('end')
+# ax.set_zlabel('level')
+# ax.legend()
+#
+# plt.show()
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-inter[inter[:,1]==0,1] = l
-labels = neig_y
 
-co = 0
-for lbl in np.unique(labels):
-    indices = np.where(labels == lbl)
-    ax.scatter(inter[indices,0], inter[indices,1], inter[indices,2], s=50, alpha=0.6, label=str(lbl), cmap='rainbow')
-    co = co+1
-    print(inter[:,0], inter[:,1], inter[:,2],lbl)
-
-ax.set_xlabel('start')
-ax.set_ylabel('end')
-ax.set_zlabel('level')
-ax.legend()
-
-plt.show()
+weigths = np.sum(intervals, axis=0)
 
 
+# correct solution:
+# def softmax(x):
+#     """Compute softmax values for each sets of scores in x."""
+#     e_x = np.exp(x - np.max(x))
+#     return e_x / e_x.sum(axis=0)
 
-X= inter
-y = neig_y
-
-# Logistic regression
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.metrics import classification_report
-from sklearn.metrics import f1_score
-
-clf = LogisticRegression(random_state=0,max_iter=5000)
-
-kf = StratifiedKFold(n_splits=3)
-accu = []
-for train_index, test_index in kf.split(X,y):
-    X_train, X_test = X[train_index,:], X[test_index,:]
-    y_train, y_test = y[train_index], y[test_index]
-
-    clf.fit(X_train, y_train)
-    pred = clf.predict(X_test)
-    accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
-    print(classification_report(y_test, pred))
-
-print(np.mean(accu))
-
-clf.coef_
+# p = softmax(weigths)
+# plt.hist(p)
+# p[p.argsort()]
 
 
 
+dis = []
+for i in range(0,1000):
+     #print(np.random.choice(range(0,len(ref)),weights= weigths))
+    dis.append(random.choices(range(0,len(ref)),weights= weigths)[0])
+plt.hist(dis)
 
 
 
+center = random.choices(range(0,len(ref)),weights= weigths)[0]
 
-from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier()
+long_intervals =(inter2[:,1]-inter2[:,0])
+# np.unique(long_intervals, return_counts=True)[1]
 
+len_inter = random.choices(np.unique(long_intervals, return_counts=True)[0],weights= np.unique(long_intervals, return_counts=True)[1])[0]
 
-kf = StratifiedKFold(n_splits=3)
-accu = []
-for train_index, test_index in kf.split(X,y):
-    X_train, X_test = X[train_index,:], X[test_index,:]
-    y_train, y_test = y[train_index], y[test_index]
+inter_new = np.array([np.max([center-int(len_inter/2),0]), np.min([center+int(len_inter/2),len(ref)])])
 
-    clf.fit(X_train, y_train)
-    pred = clf.predict(X_test)
-    accu.append(f1_score(y_test.astype(int),pred.astype(int),average="weighted"))
-    print(classification_report(y_test, pred))
+level = random.choices(np.unique(inter2[:,2], return_counts=True)[0],weights= np.unique(inter2[:,2], return_counts=True)[1])[0]
+
+ts_new =warp(ref,inter_new[0],inter_new[1],level)
 
 
-print(np.mean(accu))
+distance_matrix2 = np.zeros((train_x.shape[0]))
 
 
+for i in range(0, train_x.shape[0]):
+    distance_matrix2[i] = dtw_distance(ts_new, np.asarray(train_x.values[i,:][0]))
 
+    neig_y = train_y[np.argmin(distance_matrix2)]
 
-import pandas as pd
-X1 = pd.DataFrame(X)
-
-clf.fit(X1, y)
-
-
-
-from sklearn import tree
-
-tree.plot_tree(clf,feature_names=np.array(['start','end','level']))
-fig, ax = plt.subplots(figsize=(12, 12))
-tree.plot_tree(clf, class_names=np.array(["C1","C3"]),impurity=False, fontsize=10)
-#tree.plot_tree(clf, class_names=np.array(["C1","C2","C3"]),impurity=False, fontsize=10)
-plt.show()
-
-
-L = 128
-import numpy as np
-def f(x):
-    suma = np.sum(1/(L-np.asarray(range(0,x))))
-    return ((L-x)/L)*suma
-
-
-img = np.zeros(L)
-for i in range(0,L):
-    img[i] = f(i)
-
-import matplotlib.pyplot as plt
-
-plt.plot(img)
-np.argmax(img)
-np.sum(img)
-
-
+print(np.unique(neig_y,return_counts=True))
