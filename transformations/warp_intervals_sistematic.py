@@ -4,8 +4,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from sktime.distances.elastic import dtw_distance
-
-
+from sklearn.metrics import confusion_matrix
 
 inter = np.loadtxt("inter_warp_3000.txt")
 neig_y = np.loadtxt("neig_y_seg_warp_3000.txt")
@@ -686,14 +685,86 @@ print("Interval lengths")
 print(np.mean(np.sum(intervals, axis=1)))
 print(np.std(np.sum(intervals, axis=1)))
 
-weigths1 = np.sum(intervals, axis=0)
+# weigths1 = np.sum(intervals, axis=0)
 
+# w = np.loadtxt("CBF_w_5.txt")
+# plot_colormap(ref,w)
 
 plot_colormap(ref,np.sum(intervals, axis=0))
 plot_colormap(ref,f1['mean']/f3['mean'])
 
 
 
+w = np.sum(intervals, axis=0)
+dydx = (w-np.min(w))/(np.max(w)-np.min(w))
+len(dydx)
+plot_colormap(ref,dydx)
+
+np.percentile(dydx,q=25)
+np.percentile(dydx,q=50)
+np.percentile(dydx,q=75)
+
+
+plt.plot(ref, c='grey')
+plt.plot(np.arange(len(ref))[np.where(dydx>np.percentile(dydx,q=75))[0]], ref[np.where(dydx>np.percentile(dydx,q=75))[0]], c='red')
+
+plt.plot(ref, c='grey')
+plt.plot(np.arange(len(ref))[np.where(dydx<np.percentile(dydx,q=25))[0]], ref[np.where(dydx<np.percentile(dydx,q=25))[0]], c='red')
+
+
+
+plt.plot(ref, c='grey')
+plt.plot(np.arange(len(ref))[np.where(dydx>np.percentile(dydx,q=50))[0]], ref[np.where(dydx>np.percentile(dydx,q=50))[0]], c='red')
+
+plt.plot(ref, c='grey')
+plt.plot(np.arange(len(ref))[np.where(dydx<np.percentile(dydx,q=50))[0]], ref[np.where(dydx<np.percentile(dydx,q=50))[0]], c='red')
+
+
+plt.plot(ref, c='grey')
+plt.plot(np.arange(len(ref))[np.where(dydx>np.percentile(dydx,q=25))[0]], ref[np.where(dydx>np.percentile(dydx,q=25))[0]], c='red')
+
+plt.plot(ref, c='grey')
+plt.plot(np.arange(len(ref))[np.where(dydx<np.percentile(dydx,q=75))[0]], ref[np.where(dydx<np.percentile(dydx,q=75))[0]], c='red')
+
+
+sample_ind = np.arange(len(ref))[np.where(dydx<np.percentile(dydx,q=25))[0]]
+sample_ind = np.arange(len(ref))[np.where(dydx<np.percentile(dydx,q=50))[0]]
+
+saltos = []
+for i in range(len(sample_ind)-1):
+    saltos.append(sample_ind[i+1]-sample_ind[i])
+
+num_saltos = np.sum(np.asarray(saltos)>1)
+
+
+if num_saltos>1:
+
+    selected_set = random.choices(list(range(num_saltos+1)))[0]
+    ind_saltos = np.where(np.asarray(saltos)>1)[0]
+
+    intervals_we = [np.arange(sample_ind[0],sample_ind[ind_saltos[0]]+1)]
+
+    for j in range(1,len(np.where(np.asarray(saltos)>1)[0])):
+        intervals_we.append( np.arange(sample_ind[ind_saltos[j-1]+1],sample_ind[ind_saltos[j]]+1) )
+
+    intervals_we.append( np.arange(sample_ind[ind_saltos[-1]+1], sample_ind[-1]+1))
+
+    selected_set = intervals_we[selected_set]
+
+else:
+     selected_set = sample_ind
+
+
+
+a = 8
+p= 0.5
+b = a*(1-p)/p
+
+
+start_end_sample = unwrapcircle(betaprime.rvs(a, b, size=1))
+start_end_sample =  np.array([start_end_sample[0][0],start_end_sample[1][0] ])
+
+np.round(start_end_sample *len(selected_set)).astype(int)
 
 
 
@@ -753,11 +824,94 @@ def plot_colormap(ref, weights):
 
 
 plt.plot(ref, c='grey')
+# dydx = np.sum(intervals, axis=0)
 
 weigths = np.insert(dydx, 0, 0)
 
-plt.plot(np.arange(len(ref))[weigths>0.5], ref[weigths>0.5], c='red')
-plt.plot(np.arange(len(ref))[weigths>0.7], ref[weigths>0.7], c='red')
+plt.plot(np.arange(len(ref))[np.where(weigths>0.5)[0]], ref[np.where(weigths>0.5)[0]], c='red')
+plt.plot(np.arange(len(ref))[np.where(weigths>0.9)[0]], ref[np.where(weigths>0.9)[0]], c='red')
+
+threshold=0.7
+def generate_neighbours_distance(ref,weigths,threshold, cutoff):
+    red = np.where(weigths>threshold)[0]
+    num_neig = 500
+    start_end = np.zeros((num_neig, 2))
+    dis = []
+    for i in range(0,int(num_neig/2)):
+        p = random.sample(list(red),1)[0]
+        sign_left = random.sample([0,1],1)[0]
+        sign_right = random.sample([0,1],1)[0]
+
+        leng_left= random.randrange(1,5)
+        if sign_left==0:
+            leng_left = p-red[0]-leng_left
+        else:
+            leng_left = p - red[0] + leng_left
+
+        leng_rigth = random.randrange(1, 5)
+        if sign_right == 0:
+            leng_rigth = red[-1] -p - leng_rigth
+        else:
+            leng_rigth =red[-1] -p + leng_rigth
+
+
+        start_end[i, 0] = p - leng_left
+        start_end[i, 1] = p + leng_rigth
+
+
+        b = np.asarray(range(start_end[i, 0].astype(int), start_end[i, 1].astype(int)))
+        b = b.reshape(-1, 1)
+        dis.append(max(directed_hausdorff(red.reshape(-1,1), b)[0], directed_hausdorff(b, red.reshape(-1,1))[0]))
+
+    plt.bar(np.unique(dis), np.unique(dis, return_counts=True)[1])
+
+
+    gray = np.where(weigths < threshold)[0]
+    dis = []
+    for i in range(int(num_neig/2),num_neig):
+        p = random.sample(list(gray[2:-2]),1)[0]
+        # len_left = random.randint(1, np.min([p - 1, 128]))
+        # len_right = random.randint(1, np.min([len(ref) - p, 128]))
+        len_left = random.randint(1, np.min([p - 1, 20]))
+        len_right = random.randint(1, np.min([len(ref) - p, 20]))
+        start_end[i, 0] = p - len_left
+        start_end[i, 1] = p + len_right
+
+
+        b = np.asarray(range(start_end[i, 0].astype(int), start_end[i, 1].astype(int)))
+        b = b.reshape(-1, 1)
+        dis.append(max(directed_hausdorff(red.reshape(-1,1), b)[0], directed_hausdorff(b, red.reshape(-1,1))[0]))
+
+    plt.bar(np.unique(dis), np.unique(dis, return_counts=True)[1])
+
+    neig = []
+    inter = np.zeros((num_neig, 3))
+    count = 0
+    for i in range(0, num_neig):
+        start = start_end[i, 0].astype(int)
+        end = start_end[i, 1].astype(int)
+        if end == len(ref):
+            end = 0
+        if start == 0:
+            start = 1
+        for k in [0.8]:
+            inter[count, :] = np.array([start, end, k])
+            neig.append(warp(ref, start, end, k))
+            count = count + 1
+
+    distance_matrix = np.zeros((len(neig), train_x.shape[0]))
+
+    for i in range(0, len(neig)):
+        for j in range(0, train_x.shape[0]):
+            distance_matrix[i, j] = dtw_distance(neig[i], np.asarray(train_x.values[j, :][0]))
+
+    neig_y = train_y[np.argmin(distance_matrix, axis=1)]
+
+    # print(np.unique(neig_y, return_counts=True))
+    print(f1_score(neig_y, np.repeat(['1','3'],[250,250]), average="weighted" ))
+    print(confusion_matrix(neig_y, np.repeat(['1','3'],[250,250])))
+
+
 
 
 #0.7
