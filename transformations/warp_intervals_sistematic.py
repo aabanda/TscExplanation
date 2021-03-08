@@ -23,13 +23,13 @@ inter.shape
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
-
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
-
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
-
+#
+# train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
+# test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
+#
+# train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+# test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+#
 
 #CBF
 # ind =2 #class 1
@@ -139,7 +139,7 @@ def plot_colormap(ref, weights):
 
     axs.set_xlim(0, len(x))
     axs.set_ylim(-2.5, 2.5)
-    axs.set_ylim(-2, 4)
+    axs.set_ylim(np.min(ref)-0.2, np.max(ref)+0.2)
     plt.show()
 
 
@@ -565,7 +565,17 @@ for threshold in ran:
 
 plt.plot(ran,num)
 
+pendiente = []
+for i in range(len(num)-1):
+    pendiente.append(num[i+1]-num[i])
 
+np.min(pendiente)
+plt.plot(pendiente)
+
+
+p_pendiente = []
+for i in range(len(pendiente)-1):
+    p_pendiente.append(pendiente[i+1]-pendiente[i])
 
 
 #Elijo un threshold:

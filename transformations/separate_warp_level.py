@@ -17,7 +17,7 @@ train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
 zerps= []
-for ind in range(31,101):
+for ind in range(0,101):
     # ind=1
 
     ref = test_x.values[ind,:][0].values
@@ -38,9 +38,10 @@ for ind in range(31,101):
         inter = inter_total[inter_total[:,2]==warp_level,:]
 
 
-        if len(np.unique(neig_y))==1:
 
-            np.savetxt('transformations/weights/CBF_weights%0.1f_%d.txt' % (warp_level,ind), np.zeros((len(ref))))
+        if len(np.unique(neig_y))==1 or np.unique(neig_y, return_counts=True)[1][np.where(np.unique(neig_y)==test_y[ind].astype(int))[0][0]]>=(0.99*len(neig_y)):
+
+            np.savetxt('transformations/weights/threshold/CBF_weights%0.1f_%d.txt' % (warp_level,ind), np.zeros((len(ref))))
 
         else:
 
@@ -89,7 +90,6 @@ for ind in range(31,101):
 
 
             same_int = np.delete(same_int,np.where(same_int[:,0]==same_int[:,1])[0],0 )
-
             other_int = np.delete(other_int,np.where(other_int[:,0]==other_int[:,1])[0],0 )
 
 
@@ -108,7 +108,7 @@ for ind in range(31,101):
 
 
 
-            ran = range(1,30,2)
+            ran = range(1,60,2)
 
             num = []
             for threshold in ran:
@@ -118,35 +118,94 @@ for ind in range(31,101):
                     # perc_per_same.append(np.where(dist_int[i,:]<np.percentile(dist_int,q=2))[0])
                     thresh_per_same.append(np.where(dist_int[i,:]<threshold)[0])
                 k = np.concatenate(thresh_per_same, axis=0)
-                num.append(len(np.unique(k, return_counts=True)[0]))
+                num.append(len(np.unique(k)))
 
 
-            plt.plot(ran,num)
+            # plt.plot(ran,num)
 
+            pendiente = []
+            for i in range(len(num) - 1):
+                pendiente.append(num[i + 1] - num[i])
 
+            ind_thre = np.argmin(pendiente)
+            threshold = np.asarray(ran)[ind_thre]
+            # plt.plot(pendiente)
+            #
+            p_pendiente = []
+            for i in range(len(pendiente) - 1):
+                p_pendiente.append(pendiente[i + 1] - pendiente[i])
 
+            # np.column_stack((pendiente[:-1],p_pendiente))
+            # np.column_stack((ran,num))
+
+            p = ( np.asarray(p_pendiente)>0).astype(int)
+            cambio = []
+            for pp in range(len(p)-1):
+                cambio.append(p[pp+1]-p[pp])
+
+            if len(np.where(np.asarray(cambio)==1)[0])>0:
+                ind_p= np.where(np.asarray(cambio)==1)[0][0]+2
+                threshold = np.asarray(ran)[ind_p]
+
+                thresh_per_same = []
+                for i in range(0, dist_int.shape[0]):
+                    thresh_per_same.append(np.where(dist_int[i, :] < threshold)[0])
+                k = np.concatenate(thresh_per_same, axis=0)
+
+                len(np.unique(k))
+                other_int.shape
+                same_int.shape
+
+                other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+                print("len other index")
+                len(other_index)
+
+            if len(np.where(np.asarray(cambio)==1)[0])==0 or len(other_index)<=5:
+                #middle = (np.where(np.asarray(num) == other_int.shape[0])[0][0] / 2).astype(int)
+                middle = (np.where(np.asarray(num) >other_int.shape[0]/ 2))[0][0] .astype(int) #percentil 50
+                threshold = np.asarray(ran)[middle]
+
+                thresh_per_same = []
+                for i in range(0, dist_int.shape[0]):
+                    thresh_per_same.append(np.where(dist_int[i, :] < threshold)[0])
+                k = np.concatenate(thresh_per_same, axis=0)
+
+                len(np.unique(k))
+                other_int.shape
+                same_int.shape
+
+                other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+                print("len other index")
+                len(other_index)
+
+            if len(other_index)==0:
+                np.savetxt('transformations/weights/threshold/CBF_weights%0.1f_%d.txt' % (warp_level, ind),
+                           np.zeros((len(ref))))
             #Elijo un threshold:
 
-            thresh_per_same = []
-            for i in range(0,dist_int.shape[0]):
-                thresh_per_same.append(np.where(dist_int[i,:]<5)[0])
-            k = np.concatenate(thresh_per_same, axis=0)
+            # thresh_per_same = []
+            # for i in range(0,dist_int.shape[0]):
+            #     thresh_per_same.append(np.where(dist_int[i,:]<threshold)[0])
+            # k = np.concatenate(thresh_per_same, axis=0)
+            #
+            # len(np.unique(k))
+            # other_int.shape
+            # same_int.shape
+            #
+            #
+            #
+            # other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+            # print("len other index")
+            # len(other_index)
 
-            len(np.unique(k))
-            other_int.shape
-            same_int.shape
+            # if len(other_index)<=5 and other_int.shape[0]<=10:
+            #
+            #     np.savetxt('transformations/weights/threshold/CBF_weights%0.1f_%d.txt' % (warp_level, ind), np.zeros((len(ref))))
+
+            # else:
 
 
-
-            other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
-            print("len other index")
-            len(other_index)
-
-
-
-
-
-            #Other class
+           #Other class
             ind_sort = inter[neig_y.astype(int)!= test_y[ind].astype(int), 2].argsort()
             inter2 = inter.copy()
             inter2 = inter2[neig_y.astype(int) != test_y[ind].astype(int), :][ind_sort]
@@ -182,13 +241,15 @@ for ind in range(31,101):
             print(np.std(np.sum(intervals, axis=1)))
 
             # weigths1 = np.sum(intervals, axis=0)
-            np.savetxt('transformations/weights/CBF_weights%0.1f_%d.txt' % (warp_level,ind),np.sum(intervals, axis=0) )
+            np.savetxt('transformations/weights/threshold/CBF_weights%0.1f_%d.txt' % (warp_level,ind),np.sum(intervals, axis=0) )
+
+
 
 
 zerps = []
 for ind in range(31,101):
     for warp_level in np.array([0.7,0.8,0.9,1.1,1.2,1.3]):
-        w= np.loadtxt('transformations/weights/CBF_weights%0.1f_%d.txt' % (warp_level, ind))
+        w= np.loadtxt('transformations/weights/threshold/CBF_weights%0.1f_%d.txt' % (warp_level, ind))
         if np.sum(w)==0:
             zerps.append(1)
 

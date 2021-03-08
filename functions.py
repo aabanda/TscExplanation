@@ -19,6 +19,12 @@ test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CB
 
 
 
+def scale(ref,start, end, k):
+    shifted_t = ref.copy()
+    shifted_t[range(start,end)] = ref[range(start,end)]*k
+    return shifted_t
+
+
 def explanation1(ref, y_ref, warp_level, train_x, train_y, classifier):
 
     ref= X[test_index[ind], :]
@@ -27,6 +33,7 @@ def explanation1(ref, y_ref, warp_level, train_x, train_y, classifier):
     train_x= X[train_index, :]
     train_y= y[train_index]
     classifier = "boss"
+    classifier = "dtw"
 
     a = 8
     p = 0.3
@@ -53,8 +60,9 @@ def explanation1(ref, y_ref, warp_level, train_x, train_y, classifier):
         if start == 0:
             start = 1
         for k in [0.3, 0.5, 0.9, 1.1, 1.2, 1.3]:
+            # neig.append(warp(ref, start, end, k))
             inter[count, :] = np.array([start, end, k])
-            neig.append(warp(ref, start, end, k))
+            neig.append(scale(ref, start, end, k))
             count = count + 1
 
     inter[inter[:, 1] == 0, 1] = len(ref)
@@ -65,7 +73,8 @@ def explanation1(ref, y_ref, warp_level, train_x, train_y, classifier):
 
         for i in range(0, len(neig)):
             for j in range(0, train_x.shape[0]):
-                distance_matrix[i, j] = dtw_distance(neig[i], np.asarray(train_x.values[j, :][0]))
+                #distance_matrix[i, j] = dtw_distance(neig[i], np.asarray(train_x.values[j, :][0]))
+                distance_matrix[i, j] = dtw_distance(neig[i], np.asarray(train_x[j, :]))
 
         neig_y = train_y[np.argmin(distance_matrix, axis=1)]
 
@@ -85,21 +94,29 @@ def explanation1(ref, y_ref, warp_level, train_x, train_y, classifier):
             neig_y.append(clf.predict(neig[i].reshape(1,1,-1))[0])
 
         neig_y = np.ravel(neig_y)
-        np.savetxt("sinteticas_inter_boss2_c105.txt", inter)
-        np.savetxt("sinteticas_y_boss2_c105.txt", neig_y)
+        # np.savetxt("sinteticas_inter_boss2_c105.txt", inter)
+        # np.savetxt("sinteticas_y_boss2_c105.txt", neig_y)
 
     print(np.unique(neig_y, return_counts=True))
 
 
-    neig_y = neig_y[inter[:,2]==warp_level]
-    inter = inter[inter[:,2]==warp_level,:]
 
-    inter = np.loadtxt("sinteticas_inter_boss2_c105.txt")
-    neig_y = np.loadtxt("sinteticas_y_boss2_c105.txt", )
+    neig_cop = neig_y.copy()
+    inter_cop = inter.copy()
 
-    neig_y = neig_y[inter[:, 2] == 0.3]
-    inter = inter[inter[:, 2] == 0.3, :]
-    #np.unique(neig_y, return_counts=True)
+    scale_level = 0.3
+    neig_y = neig_cop[inter_cop[:,2]==scale_level]
+    inter = inter_cop[inter_cop[:,2]==scale_level,:]
+
+    print(np.unique(neig_y, return_counts=True))
+
+    #
+    # inter = np.loadtxt("sinteticas_inter_boss2_c105.txt")
+    # neig_y = np.loadtxt("sinteticas_y_boss2_c105.txt", )
+    #
+    # neig_y = neig_y[inter[:, 2] == 0.3]
+    # inter = inter[inter[:, 2] == 0.3, :]
+    # #np.unique(neig_y, return_counts=True)
 
     # Same class
     ind_sort = inter[neig_y.astype(int) == y_ref.astype(int), 2].argsort()
@@ -180,6 +197,7 @@ def explanation1(ref, y_ref, warp_level, train_x, train_y, classifier):
 
     return np.sum(intervals, axis=0)
 
+plot_colormap(ref, np.sum(intervals, axis=0))
 
 def explanation2(ref, y_ref, warp_level, train_x, train_y, classifier):
 
@@ -288,3 +306,5 @@ def explanation2(ref, y_ref, warp_level, train_x, train_y, classifier):
     f3 = fi[2]
 
     return  f1['mean']/f3['mean']
+
+plot_colormap(ref,  f1['mean']/f3['mean'])
