@@ -1,16 +1,19 @@
-from sktime.utils.load_data import load_from_tsfile_to_dataframe
-import numpy as np
+from sktime.utils.data_io import load_from_tsfile_to_dataframe
+import random
 import matplotlib.pyplot as plt
 import random
 from sktime.distances.elastic import dtw_distance
 import numpy as np
-from sktime.classifiers.dictionary_based import BOSSEnsemble, BOSSIndividual
 from sklearn.metrics import f1_score
 
 
 
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
+
+
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
 
 
 # train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
@@ -38,6 +41,13 @@ def noise(ref, start, end, k):
     noise = np.random.normal(0, np.abs(np.max(ref)-np.min(ref))*k/100 , len(range(start,end)))
     shifted_t[range(start,end)] = ref[range(start,end)]+noise
     return shifted_t
+
+
+
+#
+# plt.plot(ref)
+# plt.plot(noise(ref,2,20,1))
+# plt.plot(noise(ref,2,20,9))
 
 
 
@@ -81,21 +91,16 @@ start_end = start_end.astype(int)
 
 num_neig =500
 neig = []
-inter = np.zeros((num_neig*6,3))
+inter = np.zeros((num_neig*5,3))
 count = 0
 for i in range(0,num_neig):
      start = start_end[i, 0]
      end = start_end[i, 1]
-     for k in [3,4,5,6,7,8]:
+     for k in [1,3,5,7,9]:
          inter[count, :] =  np.array([start,end,k])
          neig.append(noise(ref, start,end,k))
          count = count + 1
 
-
-
-
-plt.plot(ref)
-plt.plot(neig[1])
 
 
 distance_matrix = np.zeros((len(neig),train_x.shape[0]))

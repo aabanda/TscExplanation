@@ -16,9 +16,9 @@ test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CB
 # test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
 
 #CBF
-ind =2 #class 1
+# ind =2 #class 1
 # ind = 0 #Class 2
-# ind = 5 #Class 3
+ind = 5 #Class 3
 
 #ArrowHead
 # ind=0
@@ -151,10 +151,10 @@ neig_y = np.loadtxt("neig_y_shift_random_interval.txt")
 inter = np.loadtxt("inter_shift_random_interval.txt")
 np.unique(neig_y,return_counts=True)
 
-
+test_y[ind]
 col = neig_y.astype(int)
-col[col==2]=0
-col[col==3]=1
+col[col==3]=0
+col[col==2]=1
 
 np.unique(col,return_counts=True)
 plt.scatter(inter[col==0,0], inter[col==0,1], c='coral', label='Same class')
@@ -162,67 +162,6 @@ plt.scatter(inter[col==1,0], inter[col==1,1], c='lightblue', label='Other class'
 plt.legend()
 plt.xlabel("prefix shift")
 plt.ylabel("sufix shift")
-
-
-
-
-# np.unique(neig_y, return_counts=True)
-# same_int = inter[neig_y==test_y[ind].astype(int)]
-# other_int = inter[neig_y!=test_y[ind].astype(int)]
-#
-# same_int.shape
-# other_int.shape
-#
-
-#
-# dist_int = np.zeros((same_int.shape[0],other_int.shape[0]))
-# for i in range(0,same_int.shape[0]):
-#     for j in range(0,other_int.shape[0]):
-#         dist_int[i,j]= np.linalg.norm(same_int[i,:]-other_int[j,:])
-#
-#
-#
-# ran = range(1,30,2)
-#
-# num = []
-# for threshold in ran:
-#     thresh_per_same = []
-#     for i in range(0,dist_int.shape[0]):
-#         # min_per_same.append(np.argmin(dist_int[i,:]))
-#         # perc_per_same.append(np.where(dist_int[i,:]<np.percentile(dist_int,q=2))[0])
-#         thresh_per_same.append(np.where(dist_int[i,:]<threshold)[0])
-#     k = np.concatenate(thresh_per_same, axis=0)
-#     num.append(len(np.unique(k, return_counts=True)[0]))
-#
-#
-# plt.plot(ran,num)
-#
-#
-#
-#
-#
-#
-#
-# thresh_per_same = []
-# for i in range(0,dist_int.shape[0]):
-#     thresh_per_same.append(np.where(dist_int[i,:]<15)[0])
-# k = np.concatenate(thresh_per_same, axis=0)
-#
-# len(np.unique(k))
-#
-#
-# other_int.shape
-# same_int.shape
-#
-#
-# other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
-# len(other_index)
-#
-#
-
-
-# plt.scatter(other_int[other_index,0],other_int[other_index,1])
-#
 
 
 
@@ -297,7 +236,7 @@ plt.plot(ran,num)
 #por columna
 thresh_per_same = []
 for i in range(0,dist_int.shape[1]):
-    thresh_per_same.append(np.where(dist_int[:,i]<15)[0])
+    thresh_per_same.append(np.where(dist_int[:,i]<5)[0])
 k = np.concatenate(thresh_per_same, axis=0)
 
 len(np.unique(k))

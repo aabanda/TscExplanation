@@ -13,7 +13,7 @@ import sys
 
 ind = int(sys.argv[1])
 
-ind=54
+ind=0
 
 # train_x, train_y = load_from_tsfile_to_dataframe("CBF_TRAIN.ts")
 # test_x, test_y = load_from_tsfile_to_dataframe("CBF_TEST.ts")
@@ -21,8 +21,17 @@ ind=54
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TRAIN.ts")
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/CBF/CBF_TEST.ts")
 
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
+
+
 ref = test_x.values[ind,:][0].values
 print(test_y[ind])
+plt.plot(ref)
+
 
 def warp(ts,start,end,scale):
     ref = ts
@@ -128,6 +137,66 @@ for i in range(0,num_neig):
          count = count+1
 
 
+# #
+# #
+# neig = []
+# inter = np.zeros((num_neig,3))
+# count = 0
+# for i in range(0,num_neig):
+#      start = start_end[i,0]
+#      end =  start_end[i,1]
+#      if end == len(ref):
+#          end = 0
+#      if start == 0:
+#          start = 1
+#      for k in [1.2]:
+#          inter[count, :] = np.array([start, end, k])
+#          neig.append(warp(ref, start, end, k))
+#          count = count+1
+#
+
+inter[inter[:,1]==0,1]=len(ref)
+
+plt.plot(ref)
+plt.xlabel("t")
+
+ind_pr=0
+ind_pr=2
+ind_pr=6
+ind_pr=4
+ind_pr=18
+
+
+
+plt.figure(figsize=(6,4))
+plt.plot(ref,linewidth=3)
+plt.xlim(0,len(ref))
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.tight_layout()
+
+
+plt.figure(figsize=(6,4))
+plt.plot(np.arange(inter[ind_pr,0], inter[ind_pr,1]), np.repeat(0,len(np.arange(inter[ind_pr,0], inter[ind_pr,1]))),linewidth=3,color="black")
+plt.plot(np.arange(1, 100), np.repeat(0,len(np.arange(1,100))),linewidth=3,color="black")
+plt.xlim(0,len(ref))
+plt.ylim(-1.5,1.5)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.tight_layout()
+
+plt.figure(figsize=(6,4))
+plt.plot(ref,linewidth=3)
+plt.plot(warp(ref,1,100,1.2),linewidth=3)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.tight_layout()
+
+
+
 
 
 distance_matrix = np.zeros((len(neig),train_x.shape[0]))
@@ -149,6 +218,38 @@ np.savetxt("CBF_inter_%d.txt" % ind, inter)
 inter = np.loadtxt('transformations/weights/CBF_inter_54.txt')
 neig_y = np.loadtxt('transformations/weights/CBF_neig_54.txt')
 
+
+
+inter = np.loadtxt('GP_inter_warp_3000.txt')
+neig_y = np.loadtxt('GP_neig_warp_3000.txt')
+
+
+
+
+
+
+
+#Load gunpoint neig and compute saliency map
+
+ind=1
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+
+ref = test_x.values[ind,:][0].values
+print(test_y[ind])
+plt.plot(ref)
+
+
+# inter = np.loadtxt('transformations/weights/GunPoint_inter_%s.txt' % ind)
+# neig_y = np.loadtxt('transformations/weights/GunPoint_neig_%s.txt' % ind)
+
+
+inter = np.loadtxt('transformations/weights/GP_scale_inter_%s.txt' % ind)
+neig_y = np.loadtxt('transformations/weights/GP_scale_neig_%s.txt' % ind)
+
+
+np.unique(neig_y,return_counts=True)
+
 #
 #
 # inter_seg = inter.copy()
@@ -157,10 +258,14 @@ neig_y = np.loadtxt('transformations/weights/CBF_neig_54.txt')
 # inter = inter_seg
 # neig_y = neig_y_seg
 
+warp_level=1.2
+neig_y = neig_y[inter[:,2]==warp_level]
+inter = inter[inter[:,2]==warp_level,:]
 
-neig_y = neig_y[inter[:,2]==0.7]
-inter = inter[inter[:,2]==0.7,:]
 
+inter[inter[:,1]==0,1] = len(ref)
+
+np.unique(neig_y,return_counts=True)
 
 
 #Same class
@@ -226,7 +331,7 @@ for i in range(0,same_int.shape[0]):
 
 
 
-ran = range(1,30,2)
+ran = range(1,80,2)
 
 num = []
 for threshold in ran:
@@ -242,23 +347,74 @@ for threshold in ran:
 plt.plot(ran,num)
 
 
+if np.all(np.asarray(num) == num[0]):
 
-#Elijo un threshold:
+    other_index = np.arange(other_int.shape[0])
 
-thresh_per_same = []
-for i in range(0,dist_int.shape[0]):
-    thresh_per_same.append(np.where(dist_int[i,:]<5)[0])
-k = np.concatenate(thresh_per_same, axis=0)
-
-len(np.unique(k))
-other_int.shape
-same_int.shape
+else:
 
 
+    #Elijo un threshold:
+    pendiente = []
+    for i in range(len(num) - 1):
+        pendiente.append(num[i + 1] - num[i])
 
-other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+    ind_thre = np.argmin(pendiente)
+    threshold = np.asarray(ran)[ind_thre]
+    # plt.plot(pendiente)
+    #
+    p_pendiente = []
+    for i in range(len(pendiente) - 1):
+        p_pendiente.append(pendiente[i + 1] - pendiente[i])
+
+    # np.column_stack((pendiente[:-1],p_pendiente))
+    # np.column_stack((ran,num))
+
+    p = ( np.asarray(p_pendiente)>0).astype(int)
+    cambio = []
+    for pp in range(len(p)-1):
+        cambio.append(p[pp+1]-p[pp])
+
+    if len(np.where(np.asarray(cambio)==1)[0])>0:
+        ind_p= np.where(np.asarray(cambio)==1)[0][0]+2
+        threshold = np.asarray(ran)[ind_p]
+
+        thresh_per_same = []
+        for i in range(0, dist_int.shape[0]):
+            thresh_per_same.append(np.where(dist_int[i, :] < threshold)[0])
+        k = np.concatenate(thresh_per_same, axis=0)
+
+        len(np.unique(k))
+        other_int.shape
+        same_int.shape
+
+        other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+        print("len other index")
+        len(other_index)
+
+    if len(np.where(np.asarray(cambio)==1)[0])==0 or len(other_index)<=5:
+        #middle = (np.where(np.asarray(num) == other_int.shape[0])[0][0] / 2).astype(int)
+        middle = (np.where(np.asarray(num) >other_int.shape[0]/ 2))[0][0] .astype(int) #percentil 50
+        threshold = np.asarray(ran)[middle]
+
+        thresh_per_same = []
+        for i in range(0, dist_int.shape[0]):
+            thresh_per_same.append(np.where(dist_int[i, :] < threshold)[0])
+        k = np.concatenate(thresh_per_same, axis=0)
+
+        len(np.unique(k))
+        other_int.shape
+        same_int.shape
+
+        other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+
+
 print("len other index")
-len(other_index)
+print(len(other_index))
+#
+# other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
+# print("len other index")
+# len(other_index)
 
 
 
@@ -300,4 +456,106 @@ print(np.mean(np.sum(intervals, axis=1)))
 print(np.std(np.sum(intervals, axis=1)))
 
 # weigths1 = np.sum(intervals, axis=0)
-np.savetxt('CBF_weights08_%d.txt' % ind,np.sum(intervals, axis=0) )
+# np.savetxt('CBF_weights08_%d.txt' % ind,np.sum(intervals, axis=0) )
+
+
+
+def plot_colormap(ref, weights):
+    from matplotlib.collections import LineCollection
+    from matplotlib.colors import ListedColormap, BoundaryNorm
+
+    x = range(0,len(ref)-1)
+    y = ref[1:]
+    # dydx = np.abs(clf.coef_)[0]
+    #dydx = np.sum(intervals, axis=0)/len(other_index)
+    dydx = weights
+    dydx = dydx[1:]
+
+
+    points = np.array([x, y]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+
+    fig, axs = plt.subplots()
+
+    # Create a continuous norm to map from data points to colors
+    norm = plt.Normalize(dydx.min(), dydx.max())
+    lc = LineCollection(segments, cmap='jet', norm=norm)
+    # Set the values used for colormapping
+    lc.set_array(dydx)
+    lc.set_linewidth(2)
+    line = axs.add_collection(lc)
+
+
+    fig.colorbar(line, ax=axs)
+
+    axs.set_xlim(0-5, len(x)+5)
+    axs.set_ylim(-2.5, 2.5)
+    axs.set_ylim(-2,1.7)
+    plt.show()
+
+
+
+
+
+plt.figure(figsize=(6,4))
+plt.plot(ref,linewidth=3)
+plt.plot(neig[ind_pr],linewidth=3)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.tight_layout()
+
+we_example = np.zeros(len(ref))
+we_example[range(100,180)]=1
+we_example[range(180,185)]=2
+we_example[range(185,200)]=3
+we_example[range(200,235)]=4
+we_example[range(235,245)]=3
+we_example[range(245,249)]=1
+
+
+
+from matplotlib.collections import LineCollection
+
+x = range(0,len(ref)-1)
+y = ref[1:]
+# dydx = np.abs(clf.coef_)[0]
+#dydx = np.sum(intervals, axis=0)/len(other_index)
+dydx = we_example
+dydx = dydx[1:]
+dydx= (dydx - np.min(dydx))/(np.max(dydx)-np.min(dydx))
+
+
+points = np.array([x, y]).T.reshape(-1, 1, 2)
+segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+
+fig, axs = plt.subplots(figsize=(8,4))
+
+# Create a continuous norm to map from data points to colors
+norm = plt.Normalize(dydx.min(), dydx.max())
+lc = LineCollection(segments, cmap='jet', norm=norm, lw=2)
+
+# Set the values used for colormapping
+lc.set_array(dydx)
+lc.set_linewidth(5)
+line = axs.add_collection(lc)
+
+
+cbar=fig.colorbar(line, ax=axs)
+cbar.ax.tick_params(labelsize=20)
+
+axs.set_xlim(0-5, len(x)+5)
+axs.set_ylim(-2,1.7)
+axs.tick_params(axis="both", labelsize=20)
+plt.show()
+
+
+
+
+plot_colormap(ref,np.sum(intervals, axis=0))
+
+
+
+plot_colormap(ref,we_example)

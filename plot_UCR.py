@@ -12,18 +12,25 @@ import matplotlib
 
 
 #WARP 1
+db = "ArrowHead"
+#
+db = "GunPoint"
+db = "Meat"
+db = "Car"
+db = "BeetleFly"
+db = "Coffee"
+db = "ECG200"
+db = "ECGFiveDays"
+db = "GesturePebbleZ1"
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/ArrowHead/ArrowHead_TEST.ts")
 
 
+#db = "Adiac"
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TRAIN.ts" % (db, db))
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TEST.ts"% (db, db))
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GesturePebbleZ1/GesturePebbleZ1_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GesturePebbleZ1/GesturePebbleZ1_TEST.ts")
 
-train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
-test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
 
 
 ind_ref = 0
@@ -31,9 +38,8 @@ ref = test_x.values[ind_ref,:][0]
 test_y[ind_ref]
 
 
-plt.plot(ref)
-
-np.unique(train_y)
+#plt.plot(ref)
+print(np.unique(train_y))
 
 
 
@@ -52,12 +58,12 @@ for i in np.unique(train_y):
 ind=0
 s= train_x.values[ind,:][0].values
 len(s)
-plt.plot(s)
+# plt.plot(s)
 
 
 
-per_class =3
-matplotlib.use('Agg')  # turn off gui
+per_class =5
+#matplotlib.use('Agg')  # turn off gui
 
 fig, axs = plt.subplots(len(np.unique(train_y)),per_class, figsize=(15, 6), facecolor='w', edgecolor='k')
 fig.subplots_adjust(hspace = .5, wspace=.001)
@@ -72,13 +78,14 @@ for c in range(len(np.unique(train_y))):
         axs[i].plot(train_x.values[ind,:][0].values)
         i = i+1
 
+
 #plt.plot(train_x.values[3,:][0].values)
 # #axs[i].set_title(str(250+i))
 
 
 
 
-per_class =3
+per_class =5
 fig, axs = plt.subplots(len(np.unique(train_y)),1, figsize=(15, 6), facecolor='w', edgecolor='k')
 fig.subplots_adjust(hspace = .5, wspace=.001)
 
@@ -88,3 +95,34 @@ for c in range(len(np.unique(train_y))):
     for j in range(per_class):
         ind = ind_class[c][j]
         axs[c].plot(train_x.values[ind,:][0].values)
+
+
+
+
+
+
+cla =1
+plt.plot(train_x.values[ind_class[cla][0],:][0].values)
+plt.plot(train_x.values[ind_class[cla][1],:][0].values)
+plt.plot(train_x.values[ind_class[cla][2],:][0].values)
+plt.plot(train_x.values[ind_class[cla][3],:][0].values)
+
+
+
+
+plt.plot(train_x.values[ind_class[0][0],:][0].values)
+plt.plot(train_x.values[ind_class[1][4],:][0].values)
+
+
+plt.plot(train_x.values[ind_class[0][0],:][0].values)
+plt.plot(train_x.values[ind_class[1][5],:][0].values)
+
+
+
+plt.plot(train_x.values[ind_class[1][0],:][0].values)
+
+plt.plot(train_x.values[ind_class[0][3],:][0].values)
+plt.plot(train_x.values[ind_class[1][3],:][0].values)
+
+plt.plot(train_x.values[ind_class[0][4],:][0].values)
+plt.plot(train_x.values[ind_class[1][4],:][0].values)

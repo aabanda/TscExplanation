@@ -97,159 +97,186 @@ np.savetxt("CBF_shift_neig_%d.txt" % ind, neig_y.astype(int))
 np.savetxt("CBF_shift_inter_%d.txt" % ind, inter)
 
 
-#
-# inter = np.loadtxt('transformations/weights/CBF_inter_54.txt')
-# neig_y = np.loadtxt('transformations/weights/CBF_neig_54.txt')
-
-#
-#
-# inter_seg = inter.copy()
-# neig_y_seg = neig_y.copy()
-#
-# inter = inter_seg
-# neig_y = neig_y_seg
 
 
-# neig_y = neig_y[inter[:,2]==0.7]
-# inter = inter[inter[:,2]==0.7,:]
-#
-#
-#
-# #Same class
-# ind_sort = inter[neig_y.astype(int)== test_y[ind].astype(int), 2].argsort()
-# inter2 = inter.copy()
-# inter2 = inter2[neig_y.astype(int) == test_y[ind].astype(int), :][ind_sort]
-# variables = inter2.copy()
-# #greater than 1
-# long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
-# largest_indices1 =long_ind1
-# #smaller
-# long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
-# largest_indices2 =long_ind2
-#
-# same_int = inter2
-#
-#
-#
-#
-# #Other class
-# ind_sort = inter[neig_y.astype(int)!= test_y[ind].astype(int), 2].argsort()
-# inter2 = inter.copy()
-# inter2 = inter2[neig_y.astype(int) != test_y[ind].astype(int), :][ind_sort]
-# variables = inter2.copy()
-# #greater than 1
-# long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
-# largest_indices1 = long_ind1[::-1]
-# largest_indices1 = long_ind1
-# #smaller
-# long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
-# largest_indices2 = long_ind2[::-1]
-# largest_indices2 = long_ind2
-# #variables = np.delete(variables,2,axis=1)
-#
-# # variables = variables[neig_y==test_y[ind],:]
-# # variables.shape
-#
-#
-# other_int = inter2
-#
-# same_int = same_int[:,[0,1]]
-# other_int = other_int[:,[0,1]]
-#
-#
-#
-# same_int = np.delete(same_int,np.where(same_int[:,0]==same_int[:,1])[0],0 )
-#
-# other_int = np.delete(other_int,np.where(other_int[:,0]==other_int[:,1])[0],0 )
-#
-#
-#
-# np.unique(neig_y,return_counts=True)
-#
-# dist_int = np.zeros((same_int.shape[0],other_int.shape[0]))
-# for i in range(0,same_int.shape[0]):
-#     for j in range(0,other_int.shape[0]):
-#         a = np.asarray(range(same_int[i, :][0].astype(int), same_int[i, :][1].astype(int)))
-#         a = a.reshape(-1, 1)
-#         b = np.asarray(range(other_int[j, :][0].astype(int), other_int[j, :][1].astype(int)))
-#         b = b.reshape(-1, 1)
-#         dist_int[i,j]=max(directed_hausdorff(a,b)[0],directed_hausdorff(b,a)[0])
-#
-#
-#
-#
-# ran = range(1,30,2)
-#
-# num = []
-# for threshold in ran:
-#     thresh_per_same = []
-#     for i in range(0,dist_int.shape[0]):
-#         # min_per_same.append(np.argmin(dist_int[i,:]))
-#         # perc_per_same.append(np.where(dist_int[i,:]<np.percentile(dist_int,q=2))[0])
-#         thresh_per_same.append(np.where(dist_int[i,:]<threshold)[0])
-#     k = np.concatenate(thresh_per_same, axis=0)
-#     num.append(len(np.unique(k, return_counts=True)[0]))
-#
-#
-# plt.plot(ran,num)
-#
-#
-#
-# #Elijo un threshold:
-#
-# thresh_per_same = []
-# for i in range(0,dist_int.shape[0]):
-#     thresh_per_same.append(np.where(dist_int[i,:]<5)[0])
-# k = np.concatenate(thresh_per_same, axis=0)
-#
-# len(np.unique(k))
-# other_int.shape
-# same_int.shape
-#
-#
-#
-# other_index = np.setdiff1d(np.arange(other_int.shape[0]), np.unique(k))
-# print("len other index")
-# len(other_index)
-#
-#
-#
-#
-#
-# #Other class
-# ind_sort = inter[neig_y.astype(int)!= test_y[ind].astype(int), 2].argsort()
-# inter2 = inter.copy()
-# inter2 = inter2[neig_y.astype(int) != test_y[ind].astype(int), :][ind_sort]
-# inter2 = inter2[other_index,:]
-# variables = inter2.copy()
-# #greater than 1
-# long_ind1 =( variables[inter2[:,2]>1,1]-variables[inter2[:,2]>1,0]).argsort()
-# largest_indices1 = long_ind1[::-1]
-# largest_indices1 = long_ind1
-# #smaller
-# long_ind2 =( variables[inter2[:,2]<1,1]-variables[inter2[:,2]<1,0]).argsort()
-# largest_indices2 = long_ind2[::-1]
-# largest_indices2 = long_ind2
-#
-#
-#
-#
-#
-#
-#
-#
-# variables2 = np.concatenate((variables[inter2[:,2]>1,:][largest_indices1,:],variables[inter2[:,2]<1,:][largest_indices2,:] ))
-#
-#
-# intervals = np.zeros((variables.shape[0],len(ref)))
-# for i in range(0,intervals.shape[0]):
-#     intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
-# np.sum(intervals, axis=0)
-#
-#
-# print("Interval lengths")
-# print(np.mean(np.sum(intervals, axis=1)))
-# print(np.std(np.sum(intervals, axis=1)))
-#
-# # weigths1 = np.sum(intervals, axis=0)
-# np.savetxt('CBF_weights08_%d.txt' % ind,np.sum(intervals, axis=0) )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ind=1
+
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+
+ref = test_x.values[ind,:][0].values
+print(test_y[ind])
+plt.plot(ref)
+
+
+inter = np.loadtxt('transformations/weights/GP_shift_inter_%s.txt' % ind)
+neig_y = np.loadtxt('transformations/weights/GP_shift_neig_%s.txt' % ind)
+
+np.unique(neig_y,return_counts=True)
+
+
+same_int = inter[neig_y==test_y[ind].astype(int)]
+other_int = inter[neig_y!=test_y[ind].astype(int)]
+
+same_int.shape
+other_int.shape
+
+from scipy.spatial.distance import directed_hausdorff
+dist_int = np.zeros((same_int.shape[0], other_int.shape[0]))
+for i in range(0, same_int.shape[0]):
+    for j in range(0, other_int.shape[0]):
+        a = np.asarray(range(same_int[i, :][0].astype(int), same_int[i, :][1].astype(int)))
+        a = a.reshape(-1, 1)
+        b = np.asarray(range(other_int[j, :][0].astype(int), other_int[j, :][1].astype(int)))
+        b = b.reshape(-1, 1)
+        dist_int[i, j] = max(directed_hausdorff(a, b)[0], directed_hausdorff(b, a)[0])
+
+
+
+#por columna
+ran = range(1,50,2)
+num = []
+for threshold in ran:
+    thresh_per_same = []
+    for i in range(0,dist_int.shape[1]):
+        thresh_per_same.append(np.where(dist_int[:,i]<threshold)[0])
+    k = np.concatenate(thresh_per_same, axis=0)
+    num.append(len(np.unique(k, return_counts=True)[0]))
+
+
+
+plt.plot(ran,num)
+
+
+
+if np.all(np.asarray(num) == num[0]):
+
+    other_ind = np.arange(same_int.shape[0])
+
+else:
+
+
+    #Elijo un threshold:
+    pendiente = []
+    for i in range(len(num) - 1):
+        pendiente.append(num[i + 1] - num[i])
+
+    ind_thre = np.argmin(pendiente)
+    threshold = np.asarray(ran)[ind_thre]
+    # plt.plot(pendiente)
+    #
+    p_pendiente = []
+    for i in range(len(pendiente) - 1):
+        p_pendiente.append(pendiente[i + 1] - pendiente[i])
+
+    # np.column_stack((pendiente[:-1],p_pendiente))
+    # np.column_stack((ran,num))
+
+    p = ( np.asarray(p_pendiente)>0).astype(int)
+    cambio = []
+    for pp in range(len(p)-1):
+        cambio.append(p[pp+1]-p[pp])
+
+    if len(np.where(np.asarray(cambio)==1)[0])>0:
+        ind_p= np.where(np.asarray(cambio)==1)[0][0]+2
+        threshold = np.asarray(ran)[ind_p]
+
+        thresh_per_same = []
+        for i in range(0, dist_int.shape[0]):
+            thresh_per_same.append(np.where(dist_int[i, :] < threshold)[0])
+        k = np.concatenate(thresh_per_same, axis=0)
+
+        len(np.unique(k))
+        other_int.shape
+        same_int.shape
+
+        other_index = np.setdiff1d(np.arange(same_int.shape[0]), np.unique(k))
+
+
+    if len(np.where(np.asarray(cambio)==1)[0])==0 or len(same_int)<=5:
+        #middle = (np.where(np.asarray(num) == other_int.shape[0])[0][0] / 2).astype(int)
+        middle = (np.where(np.asarray(num) >other_int.shape[0]/ 2))[0][0] .astype(int) #percentil 50
+        threshold = np.asarray(ran)[middle]
+
+        thresh_per_same = []
+        for i in range(0, dist_int.shape[0]):
+            thresh_per_same.append(np.where(dist_int[i, :] < threshold)[0])
+        k = np.concatenate(thresh_per_same, axis=0)
+
+        len(np.unique(k))
+        other_int.shape
+        same_int.shape
+
+        other_index = np.setdiff1d(np.arange(same_int.shape[0]), np.unique(k))
+
+
+print("len other index")
+print(len(other_index))
+
+
+#variables = other_int[other_index,:]
+variables = same_int[other_index,:]
+
+
+
+
+intervals = np.zeros((variables.shape[0],len(ref)))
+for i in range(0,intervals.shape[0]):
+    intervals[i,range(variables[i,0].astype(int),variables[i,1].astype(int))] = 1
+np.sum(intervals, axis=0)
+
+
+def plot_colormap(ref, weights):
+    from matplotlib.collections import LineCollection
+    from matplotlib.colors import ListedColormap, BoundaryNorm
+
+    x = range(0,len(ref)-1)
+    y = ref[1:]
+    # dydx = np.abs(clf.coef_)[0]
+    #dydx = np.sum(intervals, axis=0)/len(other_index)
+    dydx = weights
+    dydx = dydx[1:]
+
+
+    points = np.array([x, y]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+
+    fig, axs = plt.subplots()
+
+    # Create a continuous norm to map from data points to colors
+    norm = plt.Normalize(dydx.min(), dydx.max())
+    lc = LineCollection(segments, cmap='jet', norm=norm)
+    # Set the values used for colormapping
+    lc.set_array(dydx)
+    lc.set_linewidth(2)
+    line = axs.add_collection(lc)
+
+
+    fig.colorbar(line, ax=axs)
+
+    axs.set_xlim(0-5, len(x)+5)
+    axs.set_ylim(-2.5, 2.5)
+    axs.set_ylim(-1.5,2.5)
+    plt.show()
+
+
+plot_colormap(ref,np.sum(intervals, axis=0))
+

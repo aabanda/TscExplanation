@@ -18,11 +18,13 @@ class2 = np.random.rand(100,150)
 
 start1 = 20
 for i in range(0,class1.shape[0]):
-    class1[i,np.arange(start1,start1+20)] = np.random.rand(1)*3
+    l = random.randint(10,40)
+    class1[i,np.arange(start1,start1+l)] = np.random.rand(1)+3
 
 start2 = 100
 for i in range(0,class1.shape[0]):
-    class2[i,np.arange(start2,start2+20)] = np.random.rand(1)*3
+    l = random.randint(10, 40)
+    class2[i,np.arange(start2,start2+l)] = np.random.rand(1)+3
 
 plt.plot(class1[0,:])
 plt.plot(class1[1,:])
@@ -100,7 +102,7 @@ for train_index, test_index in kf.split(X,y):
     print("A")
 
 X = np.concatenate([class1, class2])
-ind =38
+ind =0
 ref= X_test[ind,:]
 plt.plot(ref)
 y_ref= y_test[ind]
@@ -146,6 +148,7 @@ num_neig = 500
 start_end = np.zeros((num_neig,2))
 for i in range(0,num_neig):
     start_end[i,:]=unwrapcircle(betaprime.rvs(a, b, size=1))
+
 
 
 start_end[start_end<=0]=0
