@@ -188,7 +188,7 @@ ind_min = np.unravel_index(np.nanargmin(dis), dis.shape)
 plt.plot(train_x.values[ind_class[which_class][ind_min[0]],:][0].values)
 plt.plot(range(ind_min[1],ind_min[1]+len(k)),k)
 
-
+#dkjh
 
 
 #Solapadas
