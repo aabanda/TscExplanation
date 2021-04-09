@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 #Same class
 db = "GesturePebbleZ1"
+
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TRAIN.ts" % (db, db))
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TEST.ts"% (db, db))
 
@@ -44,10 +45,14 @@ for i in np.unique(train_y):
     ind_class.append(np.where(train_y==i)[0])
 
 
-
-plt.plot(train_x.values[ind_class[0][18],:][0].values)
-plt.plot(train_x.values[ind_class[1][1],:][0].values)
-
+plt.figure(figsize=(8,6))
+plt.plot(train_x.values[ind_class[0][18],:][0].values, label="Gun class",linewidth=3)
+plt.plot(train_x.values[ind_class[1][1],:][0].values, label="Point class",linewidth=3)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.legend(fontsize=20)
+plt.tight_layout()
 
 
 
@@ -67,8 +72,42 @@ plt.plot(train_x.values[ind_class[0][0],:][0].values)
 plt.plot(train_x.values[ind_class[1][1],:][0].values)
 
 
+plt.figure(figsize=(8,6))
+plt.plot(train_x.values[ind_class[0][0],:][0].values, label="Gun class",linewidth=3)
+plt.plot(train_x.values[ind_class[1][1],:][0].values, label="Point class",linewidth=3)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.legend(fontsize=20)
+plt.tight_layout()
 
 
+db = "Adiac"
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TRAIN.ts" % (db, db))
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TEST.ts"% (db, db))
+print(np.unique(train_y))
+
+ind_class = []
+for i in np.unique(train_y):
+    ind_class.append(np.where(train_y==i)[0])
+
+plt.plot(train_x.values[ind_class[0][0],:][0].values)
+plt.plot(train_x.values[ind_class[1][0],:][0].values)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(train_x.values[ind_class[0][0],:][0].values, label="Class 1",linewidth=3,)
+plt.plot(train_x.values[ind_class[1][0],:][0].values, label="Class 2",linewidth=3,)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.legend(fontsize=20)
+plt.tight_layout()
+
+
+#
+# plt.plot(train_x.values[ind_class[0][0],:][0].values)
+# plt.plot(train_x.values[ind_class[1][0],:][0].values)
 
 
 #Noise
@@ -86,6 +125,19 @@ for i in np.unique(train_y):
 plt.plot(train_x.values[ind_class[0][6],:][0].values)
 plt.plot(train_x.values[ind_class[1][2],:][0].values)
 
+# plt.figure()
+# plt.plot(train_x.values[ind_class[0][9],:][0].values)
+# plt.plot(train_x.values[ind_class[1][0],:][0].values)
+
+plt.figure(figsize=(8,6))
+plt.plot(train_x.values[ind_class[0][6],:][0].values, label="Class 1",linewidth=3)
+plt.plot(train_x.values[ind_class[1][2],:][0].values, label="Class 2",linewidth=3)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.legend(fontsize=20)
+plt.tight_layout()
+
 
 
 #SHIFT
@@ -101,8 +153,32 @@ for i in np.unique(train_y):
     ind_class.append(np.where(train_y==i)[0])
 
 
-plt.plot(train_x.values[ind_class[0][0],:][0].values)
-plt.plot(train_x.values[ind_class[1][1],:][0].values)
+k=train_x.values[ind_class[4][0],:][0].values
+which_class =6
+dis = np.zeros((len(ind_class[which_class]), 500))
+for t in range(len(ind_class[which_class])):
+    for i in range(len(train_x.values[ind_class[which_class][t], :][0].values) - len(k)):
+        dis[t, i] = np.linalg.norm(k - train_x.values[ind_class[which_class][t], :][0].values[i:i + len(k)])
+
+dis[dis == 0] = None
+print(np.nanmin(dis))
+ind_min= np.unravel_index(np.nanargmin(dis), dis.shape)
+
+
+plt.figure(figsize=(8,6))
+plt.plot(train_x.values[ind_class[which_class][ind_min[0]],:][0].values, label="Class 7",linewidth=3)
+plt.plot(range(ind_min[1],ind_min[1]+len(k)),k, label="Class 5",linewidth=3)
+plt.plot(k, label="Class 5",linewidth=3)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.legend(fontsize=20)
+plt.tight_layout()
+
+
+
+
+
 
 
 #

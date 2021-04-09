@@ -14,18 +14,48 @@ import sys
 # inter = np.loadtxt("inter_warp_3000.txt")
 # neig_y = np.loadtxt("neig_y_seg_warp_3000.txt")
 
-ind = int(sys.argv[1])
-cls = str(sys.argv[2])
-db = str(sys.argv[3])
-transformation = str(sys.argv[4])
+# ind = int(sys.argv[1])
+# cls = str(sys.argv[2])
+# db = str(sys.argv[3])
+# transformation = str(sys.argv[4])
 
 
-train_x, train_y = load_from_tsfile_to_dataframe("%s_TRAIN.ts" % db)
-test_x, test_y = load_from_tsfile_to_dataframe("%s_TEST.ts" %db)
+ind = 0
+cls = "boss"
+db = "GunPoint"
+transformation = "shif"
 
-clf = BOSSEnsemble(max_ensemble_size=100)
-clf.fit(train_x, train_y)
 
+# train_x, train_y = load_from_tsfile_to_dataframe("%s_TRAIN.ts" % db)
+# test_x, test_y = load_from_tsfile_to_dataframe("%s_TEST.ts" %db)
+
+if db=="CMJ":
+    train_x = np.loadtxt("../datasets/Univariate_ts/%s/%s_TRAIN.txt" % (db, db), delimiter=",")
+    test_x = np.loadtxt("../datasets/Univariate_ts/%s/%s_TEST.txt" % (db, db), delimiter=",")
+
+    train_y= train_x[:,0]
+    train_x= train_x[:,1:]
+
+    test_y= test_x[:,0]
+    test_x= test_x[:,1:]
+    import pandas as pd
+    X = pd.DataFrame()
+    X["dim_0"] = [pd.Series(train_x[x, :]) for x in range(len(train_x))]
+    train_x = X
+    clf = BOSSEnsemble(max_ensemble_size=100)
+    clf.fit(train_x, train_y)
+
+else:
+
+    train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TRAIN.ts")
+    test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/GunPoint/GunPoint_TEST.ts")
+
+    clf = BOSSEnsemble(max_ensemble_size=100)
+    clf.fit(train_x, train_y)
+
+
+if transformation=="shif":
+    transformation="shift"
 
 def warp(ts,start,end,scale):
     ref = ts
@@ -112,8 +142,8 @@ for ind in range(len(test_y)):
     ref = test_x.values[ind,:][0].values
     print(test_y[ind])
 
-    inter = np.loadtxt("%s/%s/dtw/inter_%d.txt" % (db,transformation, cls,ind))
-
+    inter = np.loadtxt("%s/%s/dtw/inter_%d.txt" % (db,transformation,ind))
+    inter = np.loadtxt("transformations/inter_%d.txt" % ind)
 
     num_neig = 500
 
@@ -121,21 +151,21 @@ for ind in range(len(test_y)):
 
         neig = []
         for i in range(0,inter.shape[0]):
-            neig.append(warp(ref, inter[i,0], inter[i,1], inter[i,2]))
+            neig.append(warp(ref, inter[i,0].astype(int), inter[i,1].astype(int), inter[i,2]))
 
 
     elif transformation=="shift":
-
+        inter[inter[:,2 ]==0,:]
 
         neig = []
         for i in range(0, inter.shape[0]):
-            neig.append(shift(ref, inter[i,0], inter[i,1]))
+            neig.append(shift(ref, inter[i,0].astype(int), inter[i,1].astype(int)))
 
     elif transformation=="scale":
 
         neig = []
         for i in range(0,  inter.shape[0]):
-            neig.append(scale(ref, inter[i,0], inter[i,1], inter[i,2]))
+            neig.append(scale(ref, inter[i,0].astype(int), inter[i,1].astype(int), inter[i,2]))
 
 
 
@@ -144,7 +174,7 @@ for ind in range(len(test_y)):
 
         neig = []
         for i in range(0, inter.shape[0]):
-            neig.append(noise(ref, inter[i,0], inter[i,1], inter[i,2]))
+            neig.append(noise(ref, inter[i,0].astype(int), inter[i,1].astype(int), inter[i,2].astype(int)))
 
 
     else:

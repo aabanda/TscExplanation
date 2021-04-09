@@ -1,4 +1,4 @@
-from transformations.warp_function import warp, intersection, unwrapcircle
+from transformations.old.warp_function import warp, unwrapcircle
 from sktime.utils.data_io import load_from_tsfile_to_dataframe
 import numpy as np
 from sktime.distances.elastic import dtw_distance
@@ -8,7 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import Pipeline
 from sktime.transformations.panel.summarize import RandomIntervalFeatureExtractor
 from sktime.utils.slope_and_trend import _slope
-from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import f1_score
 import pandas as pd
 from sktime.classification.dictionary_based import BOSSEnsemble
