@@ -27,6 +27,14 @@ transformation = "warp"
 warp_level=0.7
 
 
+ind =0
+classifier = "dtw"
+db = "GunPoint"
+transformation = "warp"
+warp_level=0.7
+
+
+
 #Scale: point
 ind =1
 classifier = "dtw"
@@ -43,11 +51,22 @@ warp_level=9
 transformation = "noise"
 
 
+
+
+
 #Shift: robusta
 ind =21
 classifier = "st"
 db = "Coffee"
 transformation = "shift"
+
+#
+# #Shift: gp
+# ind =52
+# classifier = "st"
+# db = "GunPoint"
+# transformation = "shift"
+
 
 
 # train_x, train_y = load_from_tsfile_to_dataframe("%s_TRAIN.ts" % db)
@@ -72,11 +91,14 @@ inter_total[inter_total[:, 1] == 0, 1] = len(ref)
 
 # for warp_level in np.array([1,3,5,7,9]):
 
-neig_y = neig_y_total[inter_total[:, 2] == warp_level]
-inter = inter_total[inter_total[:, 2] == warp_level, :]
+if transformation=="shift":
+    neig_y = neig_y_total
+    inter = inter_total
+else:
+    neig_y = neig_y_total[inter_total[:, 2] == warp_level]
+    inter = inter_total[inter_total[:, 2] == warp_level, :]
 print(ind)
 print(np.unique(neig_y, return_counts=True))
-
 
 
 
@@ -325,6 +347,7 @@ def plot_colormap(ref, weights):
     #dydx = np.sum(intervals, axis=0)/len(other_index)
     dydx = weights
     dydx = dydx[1:]
+    dydx = (dydx- np.min(dydx))/(np.max(dydx)-np.min(dydx))
 
 
     points = np.array([x, y]).T.reshape(-1, 1, 2)

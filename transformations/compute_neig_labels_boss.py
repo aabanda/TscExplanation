@@ -23,7 +23,8 @@ import sys
 ind = 0
 cls = "boss"
 db = "GunPoint"
-transformation = "shif"
+db = "Adiac"
+transformation = "scale"
 
 
 # train_x, train_y = load_from_tsfile_to_dataframe("%s_TRAIN.ts" % db)
@@ -138,6 +139,7 @@ def noise(ref, start, end, k):
 
 
 for ind in range(len(test_y)):
+
 
     ref = test_x.values[ind,:][0].values
     print(test_y[ind])

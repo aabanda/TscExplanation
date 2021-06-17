@@ -6,29 +6,25 @@ import matplotlib.pyplot as plt
 from sktime.distances.elastic import dtw_distance
 from transformations.old.warp_function import warp
 from scipy.stats import betaprime
+from sktime.classification.dictionary_based import BOSSEnsemble
+from sktime.classification.shapelet_based import ShapeletTransformClassifier
 
 
 db= "ECG200"
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TRAIN.ts" % (db,db))
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TEST.ts"% (db,db))
 
-classifier = "dtw"
+classifier = "boss"
 transformation = "shift"
 
 
+if classifier=="st":
+    clf = ShapeletTransformClassifier(time_contract_in_mins=60)
+    clf.fit(train_x, train_y)
+elif classifier=="boss":
+    clf = BOSSEnsemble(max_ensemble_size=100)
+    clf.fit(train_x, train_y)
 
-
-def scale(ref, start, end, k):
-    shifted_t = ref.copy()
-    shifted_t[range(start, end)] = ref[range(start, end)] * k
-    return shifted_t
-
-
-def noise(ref, start, end, k):
-    shifted_t = ref.copy()
-    noise = np.random.normal(0, np.abs(np.max(ref) - np.min(ref)) * k / 100, len(range(start, end)))
-    shifted_t[range(start, end)] = ref[range(start, end)] + noise
-    return shifted_t
 
 
 def shift(ref, shift_prefix, shift_sufix):
@@ -60,7 +56,7 @@ p22 = []
 p33 = []
 zer = []
 
-for repetition in range(0, 5):
+for repetition in range(0, 10):
     print("repetition")
     print(repetition)
     class_type1 = np.zeros((len(test_y), 3))
@@ -117,6 +113,8 @@ for repetition in range(0, 5):
                 else:
                     selected_set = sample_ind
 
+
+
                 a = 8
                 p = 0.5
                 b = a * (1 - p) / p
@@ -172,20 +170,40 @@ for repetition in range(0, 5):
                 if int_to_warp[0] == 0:
                     int_to_warp[0] = 1
 
+
+
+                if (int_to_warp[1]-int_to_warp[0]) < np.round(0.3*len(ref)).astype(int):
+                    add= np.round((np.round(0.3*len(ref)).astype(int)- (int_to_warp[1]-int_to_warp[0]))/2).astype(int)
+                    if int_to_warp[0]- add < 1:
+                        int_to_warp[1] = int_to_warp[1]+2*add
+                    elif int_to_warp[1]+ add > len(ref):
+                        int_to_warp[0] = int_to_warp[0] -2*add
+                    else:
+                        int_to_warp[0] = int_to_warp[0]- add
+                        int_to_warp[1] = int_to_warp[1]+ add
+
                 if transformation=="shift":
                     warped = shift(ref, int_to_warp[0], int_to_warp[1])
 
+                if classifier == "st":
+                    predic = clf.predict(warped.reshape(1, 1, -1))[0]
+                elif classifier == "boss":
+                    predic = clf.predict(warped.reshape(1, 1, -1))[0]
+                elif classifier == "dtw":
+                    distance_matrix = np.zeros((train_x.shape[0]))
 
-                distance_matrix = np.zeros((train_x.shape[0]))
+                    for i in range(0, train_x.shape[0]):
+                        distance_matrix[i] = dtw_distance(warped, np.asarray(train_x.values[i, :][0]))
 
-                for i in range(0, train_x.shape[0]):
-                    distance_matrix[i] = dtw_distance(warped, np.asarray(train_x.values[i, :][0]))
+                    # print(test_y[ind])
+                    # print(train_y[np.argmin(distance_matrix)])
+                    predic = train_y[np.argmin(distance_matrix)].astype(int)
 
                 print(test_y[ind])
-                print(train_y[np.argmin(distance_matrix)])
-                class_type1[ind,count1] = train_y[np.argmin(distance_matrix)].astype(int)
+                print(predic)
+                class_type1[ind, count1] = predic
 
-                count1= count1+1
+                count1 = count1 + 1
 
 
 
@@ -278,65 +296,95 @@ for repetition in range(0, 5):
                 if int_to_warp[0]==0:
                     int_to_warp[0]=1
 
+
+                if (int_to_warp[1]-int_to_warp[0]) < np.round(0.3*len(ref)).astype(int):
+                    add= np.round((np.round(0.3*len(ref)).astype(int)- (int_to_warp[1]-int_to_warp[0]))/2).astype(int)
+                    if int_to_warp[0]- add < 1:
+                        int_to_warp[1] = int_to_warp[1]+2*add
+                    elif int_to_warp[1]+ add > len(ref):
+                        int_to_warp[0] = int_to_warp[0] -2*add
+                    else:
+                        int_to_warp[0] = int_to_warp[0]- add
+                        int_to_warp[1] = int_to_warp[1]+ add
+
+
                 if transformation == "shift":
                     warped = shift(ref, int_to_warp[0], int_to_warp[1])
 
-                distance_matrix = np.zeros((train_x.shape[0]))
+                if classifier == "st":
+                    predic = clf.predict(warped.reshape(1, 1, -1))[0]
+                elif classifier == "boss":
+                    predic = clf.predict(warped.reshape(1, 1, -1))[0]
+                elif classifier == "dtw":
+                    distance_matrix = np.zeros((train_x.shape[0]))
 
-                for i in range(0, train_x.shape[0]):
-                    distance_matrix[i] = dtw_distance(warped, np.asarray(train_x.values[i, :][0]))
+                    for i in range(0, train_x.shape[0]):
+                        distance_matrix[i] = dtw_distance(warped, np.asarray(train_x.values[i, :][0]))
+
+                    predic = train_y[np.argmin(distance_matrix)].astype(int)
 
                 print(test_y[ind])
-                print(train_y[np.argmin(distance_matrix)])
+                print(predic)
+                class_type2[ind, count2] = predic
 
-                class_type2[ind, count2] = train_y[np.argmin(distance_matrix)].astype(int)
+    class_true = test_y.astype(int)[np.setdiff1d(np.arange(len(test_y)), zeros_warp)]
+    class_type2 = class_type2[np.setdiff1d(range(len(test_y)), zeros_warp), :]
+    class_type1 = class_type1[np.setdiff1d(range(len(test_y)), zeros_warp), :]
 
-                count2 = count2 + 1
+    p1.append(np.sum(class_true == class_type1[:, 0]) / len(class_true))
+    p2.append(np.sum(class_true == class_type1[:, 1]) / len(class_true))
+    p3.append(np.sum(class_true == class_type1[:, 2]) / len(class_true))
 
+    p11.append(np.sum(class_true == class_type2[:, 0]) / len(class_true))
+    p22.append(np.sum(class_true == class_type2[:, 1]) / len(class_true))
+    p33.append(np.sum(class_true == class_type2[:, 2]) / len(class_true))
 
+    # np.sum(class_true == class_type2[:, 0]) / len(class_true)
+    # np.sum(class_true == class_type2[:, 1]) / len(class_true)
+    # np.sum(class_true == class_type2[:, 2]) / len(class_true)
+    #
+    # p1a.append(np.sum(class_true[class_type1[:, 1] != 0] == class_type1[class_type1[:, 1] != 0, 0]) / len(
+    #     class_true[class_type1[:, 1] != 0]))
+    # p2a.append(np.sum(class_true[class_type1[:,1]!=0]==class_type1[class_type1[:,1]!=0,1])/len(class_true[class_type1[:,1]!=0]))
+    # p3a.append(np.sum(class_true[class_type1[:,1]!=0]==class_type1[class_type1[:,1]!=0,2])/len(class_true[class_type1[:,1]!=0]))
+    #
+    # p11a.append(np.sum(class_true[class_type2[:,1]!=0]==class_type2[class_type2[:,1]!=0,0])/len(class_true[class_type2[:,1]!=0]))
+    # p22a.append(np.sum(class_true[class_type2[:,1]!=0]==class_type2[class_type2[:,1]!=0,1])/len(class_true[class_type2[:,1]!=0]))
+    # p33a.append(np.sum(class_true[class_type2[:,1]!=0]==class_type2[class_type2[:,1]!=0,2])/len(class_true[class_type2[:,1]!=0]))
 
+    zer.append((len(zeros_warp)) / len(test_y))
 
-    class_true = class_true.astype(int)
+np.column_stack((class_true, class_type1))
+np.column_stack((class_true, class_type2))
 
-
-    p1.append(np.sum(class_true[class_type1[:,1]!=0]==class_type1[class_type1[:,1]!=0,0])/len(class_true[class_type1[:,1]!=0]))
-    p2.append(np.sum(class_true[class_type1[:,1]!=0]==class_type1[class_type1[:,1]!=0,1])/len(class_true[class_type1[:,1]!=0]))
-    p3.append(np.sum(class_true[class_type1[:,1]!=0]==class_type1[class_type1[:,1]!=0,2])/len(class_true[class_type1[:,1]!=0]))
-
-    p11.append(np.sum(class_true[class_type2[:,1]!=0]==class_type2[class_type2[:,1]!=0,0])/len(class_true[class_type2[:,1]!=0]))
-    p22.append(np.sum(class_true[class_type2[:,1]!=0]==class_type2[class_type2[:,1]!=0,1])/len(class_true[class_type2[:,1]!=0]))
-    p33.append(np.sum(class_true[class_type2[:,1]!=0]==class_type2[class_type2[:,1]!=0,2])/len(class_true[class_type2[:,1]!=0]))
-
-    zer.append((len(zeros_warp))/len(test_y))
-
-
-
-
-np.column_stack((class_true,class_type1))
-np.column_stack((class_true,class_type2))
-
-plt.plot(np.array(['P1','P2','P3']),np.array([np.mean(p1),np.mean(p2),np.mean(p3)]), marker='o', label="Type1")
-plt.plot(np.array([np.mean(p11),np.mean(p22),np.mean(p33)]), marker='o', label="Type2")
+plt.plot(np.array(['P1', 'P2', 'P3']), np.array([np.mean(p1), np.mean(p2), np.mean(p3)]), marker='o', label="Type1")
+plt.plot(np.array([np.mean(p11), np.mean(p22), np.mean(p33)]), marker='o', label="Type2")
 plt.legend()
-plt.ylim(0,1)
+plt.ylim(0, 1)
 plt.xlabel("Percentiles")
 plt.ylabel("Accuracy")
-#plt.title('Warp %0.1f, robus %s' % (warp_level,np.mean(zer)))
+# plt.title('Warp %0.1f, robus %s' % (warp_level,np.mean(zer)))
 plt.title('Shift, robus %s' % (np.mean(zer)))
 
-area = (np.mean(p11)-np.mean(p1))+ (np.mean(p22)-np.mean(p2))+(np.mean(p33)-np.mean(p3))
+# area = (np.mean(p11)-np.mean(p1))+ (np.mean(p22)-np.mean(p2))+(np.mean(p33)-np.mean(p3))
+#
+# print(area)
 
-print(area)
-print(np.mean(zer))
 
 
 print(np.column_stack((np.array([np.mean(p1),np.mean(p2),np.mean(p3)]), np.array([np.mean(p11),np.mean(p22),np.mean(p33)]))))
-print()
 
 
-np.save('neig/%s/%s/%s/eval.txt' % (db, transformation, classifier),np.column_stack((np.array([np.mean(p1),np.mean(p2),np.mean(p3)]), np.array([np.mean(p11),np.mean(p22),np.mean(p33)]))))
+# np.save('neig/%s/%s/%s/eval.txt' % (db, transformation, classifier),np.column_stack((np.array([np.mean(p1),np.mean(p2),np.mean(p3)]), np.array([np.mean(p11),np.mean(p22),np.mean(p33)]))))
+
+import numpy as np
+a = np.array([np.mean(p11),np.mean(p22), np.mean(p33)])
+b = np.array([np.mean(p1),np.mean(p2),np.mean(p3)])
 
 
+
+print(  ((a[0]+a[1])/2 +(a[1]+a[2])/2) -   ((b[0]+b[1])/2 +(b[1]+b[2])/2) )
+print(np.mean(zer))
 
 #
 # w07 = (1-0.74)+(0.89-0.73)+ (0.86-0.71)

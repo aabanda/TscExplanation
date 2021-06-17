@@ -20,7 +20,7 @@ import sys
 ind = 0
 cls = "dtw"
 db = "GunPoint"
-transformation = "shif"
+transformation = "warp"
 
 if transformation == "shif":
     transformation = "shift"
@@ -36,6 +36,12 @@ print(test_y[ind])
 
 
 def warp(ts, start, end, scale):
+
+    warp(ref, 4, 20, 0.7)
+    start=4
+    end=20
+    k=0.7
+
     ref = ts
     k = scale
     l = len(ref)
@@ -84,6 +90,11 @@ def warp(ts, start, end, scale):
                 end_ind = end_ind + 1
 
     return t_trasnformed
+
+
+
+
+
 
 
 def shift(ref, shift_prefix, shift_sufix):

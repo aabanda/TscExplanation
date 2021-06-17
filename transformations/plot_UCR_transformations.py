@@ -16,6 +16,7 @@ ind_class = []
 for i in np.unique(train_y):
     ind_class.append(np.where(train_y==i)[0])
 
+plt.figure()
 plt.plot(train_x.values[ind_class[5][0],:][0].values)
 plt.plot(train_x.values[ind_class[5][2],:][0].values)
 
@@ -32,6 +33,7 @@ ind_class = []
 for i in np.unique(train_y):
     ind_class.append(np.where(train_y==i)[0])
 
+plt.figure()
 plt.plot(train_x.values[ind_class[0][0],:][0].values)
 plt.plot(train_x.values[ind_class[1][4],:][0].values)
 
@@ -44,10 +46,45 @@ ind_class = []
 for i in np.unique(train_y):
     ind_class.append(np.where(train_y==i)[0])
 
+plt.figure()
+plt.plot(train_x.values[ind_class[0][18],:][0].values, label="Gun class",linewidth=3)
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.legend(fontsize=15)
+plt.tight_layout()
+
+
+plt.figure()
+plt.plot(train_x.values[ind_class[1][1],:][0].values, label="Point class",linewidth=3, color="C1")
+plt.xlabel("t", size=20)
+plt.xticks(size=20)
+plt.yticks(size=20)
+plt.legend(fontsize=15)
+plt.tight_layout()
+
+
+
+db = "InlineSkate"
+train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TRAIN.ts" % (db, db))
+test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TEST.ts"% (db, db))
+
+ind_class = []
+for i in np.unique(train_y):
+    ind_class.append(np.where(train_y==i)[0])
+
+plt.figure()
+plt.plot(train_x.values[ind_class[4][3], :][0].values)
+plt.figure()
+plt.plot(train_x.values[ind_class[6][3], :][0].values, color="C1")
+# dkjh
+
+
+
 
 plt.figure(figsize=(8,6))
-plt.plot(train_x.values[ind_class[0][18],:][0].values, label="Gun class",linewidth=3)
-plt.plot(train_x.values[ind_class[1][1],:][0].values, label="Point class",linewidth=3)
+plt.plot(train_x.values[ind_class[4][3],:][0].values, label="Class 5",linewidth=3)
+plt.plot(train_x.values[ind_class[6][3],:][0].values, label="Class 7",linewidth=3)
 plt.xlabel("t", size=20)
 plt.xticks(size=20)
 plt.yticks(size=20)
@@ -92,8 +129,9 @@ for i in np.unique(train_y):
     ind_class.append(np.where(train_y==i)[0])
 
 plt.plot(train_x.values[ind_class[0][0],:][0].values)
-plt.plot(train_x.values[ind_class[1][0],:][0].values)
-
+plt.ylim(-1.5,2)
+plt.plot(train_x.values[ind_class[1][0],:][0].values,color="C1")
+plt.ylim(-1.5,2)
 
 plt.figure(figsize=(8,6))
 plt.plot(train_x.values[ind_class[0][0],:][0].values, label="Class 1",linewidth=3,)
@@ -130,8 +168,8 @@ plt.plot(train_x.values[ind_class[1][2],:][0].values)
 # plt.plot(train_x.values[ind_class[1][0],:][0].values)
 
 plt.figure(figsize=(8,6))
-plt.plot(train_x.values[ind_class[0][6],:][0].values, label="Class 1",linewidth=3)
-plt.plot(train_x.values[ind_class[1][2],:][0].values, label="Class 2",linewidth=3)
+plt.plot(train_x.values[ind_class[0][6],:][0].values, label="Normal",linewidth=3)
+plt.plot(train_x.values[ind_class[1][2],:][0].values, label="Myocardial",linewidth=3)
 plt.xlabel("t", size=20)
 plt.xticks(size=20)
 plt.yticks(size=20)
@@ -167,12 +205,14 @@ ind_min= np.unravel_index(np.nanargmin(dis), dis.shape)
 
 plt.figure(figsize=(8,6))
 plt.plot(train_x.values[ind_class[which_class][ind_min[0]],:][0].values, label="Class 7",linewidth=3)
-plt.plot(range(ind_min[1],ind_min[1]+len(k)),k, label="Class 5",linewidth=3)
+#plt.plot(range(ind_min[1],ind_min[1]+len(k)),k, label="Class 5",linewidth=3)
 plt.plot(k, label="Class 5",linewidth=3)
 plt.xlabel("t", size=20)
 plt.xticks(size=20)
 plt.yticks(size=20)
 plt.legend(fontsize=20)
+plt.ylim(-1,5)
+#plt.ylim(-2,4)
 plt.tight_layout()
 
 

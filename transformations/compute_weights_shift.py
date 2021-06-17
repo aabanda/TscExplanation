@@ -15,18 +15,20 @@ from scipy.spatial.distance import directed_hausdorff
 # ind = int(sys.argv[1])
 
 db= "ECG200"
+db= "GunPoint"
+db= "CBF"
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TRAIN.ts" % (db,db))
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TEST.ts"% (db,db))
 
-classifier = "dtw"
+classifier = "st"
 transformation = "shift"
 
 
 
 zerps= []
-for ind in range(len(test_y)):
+for ind in range(322,len(test_y)):
     # ind=1
-
+    print("INDEX: %d" % ind)
     ref = test_x.values[ind,:][0].values
     print(test_y[ind])
 

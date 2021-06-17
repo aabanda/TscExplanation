@@ -16,12 +16,16 @@ from sktime.classification.dictionary_based import BOSSEnsemble
 
 # ind = int(sys.argv[1])
 
-db= "GunPoint"
+# db= "ECG200"
+# db= "GunPoint"
+# db= "Coffee"
+db= "CBF"
 train_x, train_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TRAIN.ts" % (db,db))
 test_x, test_y = load_from_tsfile_to_dataframe("../datasets/Univariate_ts/%s/%s_TEST.ts"% (db,db))
 
 classifier = "st"
-transformation = "warp"
+transformation = "war"
+transformation = "scale"
 
 
 #
@@ -34,10 +38,12 @@ transformation = "warp"
 
 zerps= []
 for ind in range(len(test_y)):
+#for ind in range(28,len(test_y)):
+
     # ind=1
 
     ref = test_x.values[ind,:][0].values
-    print(test_y[ind])
+    print("INDEX: %d" % ind)
 
     neig_y_total= np.loadtxt("neig/%s/%s/%s/neig_%d.txt" % (db,transformation,classifier,ind))
     inter_total =np.loadtxt("neig/%s/%s/dtw/inter_%d.txt" % (db,transformation,ind))
@@ -59,7 +65,7 @@ for ind in range(len(test_y)):
         # inter = inter_total
 
 
-        if len(np.unique(neig_y))==1 or np.unique(neig_y, return_counts=True)[1][np.where(np.unique(neig_y)==test_y[ind].astype(int))[0][0]]>=(0.99*len(neig_y)):
+        if len(np.intersect1d(np.unique(neig_y),[test_y[ind].astype(int)]))==0 or np.unique(neig_y, return_counts=True)[1][np.where(np.unique(neig_y)==test_y[ind].astype(int))[0][0]]>=(0.99*len(neig_y)):
 
             #np.savetxt('transformations/weights/threshold/CBF_weights%0.1f_%d.txt' % (warp_level,ind), np.zeros((len(ref))))
             np.savetxt('neig/%s/%s/%s/weights%0.1f_%d.txt' % (db,transformation,classifier,warp_level,ind), np.zeros((len(ref))))
@@ -142,7 +148,15 @@ for ind in range(len(test_y)):
                 num.append(len(np.unique(k)))
 
 
-            # plt.plot(ran,num)
+            # plt.figure(figsize=(7, 5))
+            # #plt.plot(ran, np.repeat(28,len(num)) - num,label="$\gamma$",linewidth=3)
+            # plt.plot(ran, num,label="$\gamma$",linewidth=3)
+            # plt.xlabel("s", size=25)
+            # plt.ylabel("$\gamma$", size=25, rotation='horizontal',labelpad=30)
+            # plt.xticks(np.arange(0, 20, step=2),size=25)
+            # plt.yticks(size=25)
+            # # plt.legend(fontsize=25)
+            # plt.tight_layout()
 
             pendiente = []
             for i in range(len(num) - 1):
